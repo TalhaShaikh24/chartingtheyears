@@ -1,0 +1,273 @@
+/* =============================================
+   reading-list.css — Vanilla CSS, no Tailwind
+   ============================================= */
+
+.rl-page {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+  animation: pageIn 0.6s ease both;
+  max-width: 900px;
+}
+
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Header ── */
+.rl-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.rl-title {
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.rl-count-pill {
+  background-color: var(--ink);
+  color: var(--canvas);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  letter-spacing: 0.02em;
+}
+
+/* ── Book List ── */
+.rl-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Reading List Card ── */
+.rl-card {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 20px;
+  padding: 20px;
+  border-radius: 16px;
+  background-color: #2b2520; /* Dark brown background */
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.rl-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 560px) {
+  .rl-card {
+    flex-direction: column;
+  }
+}
+
+.rl-card-cover-link {
+  display: block;
+  width: 90px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 560px) {
+  .rl-card-cover-link {
+    width: 120px;
+  }
+}
+
+.rl-card-cover {
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+  object-fit: cover;
+  display: block;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* ── Card Body ── */
+.rl-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  justify-content: center;
+}
+
+.rl-card-title-link {
+  text-decoration: none;
+}
+
+.rl-card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.3;
+  transition: color 0.2s;
+}
+
+.rl-card-title-link:hover .rl-card-title {
+  color: var(--accent);
+}
+
+.rl-card-author {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+.rl-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.rl-card-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 600;
+  background-color: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 0.02em;
+}
+
+/* ── Stars ── */
+.rl-card-stars {
+  display: flex;
+  gap: 2px;
+}
+
+.rl-star {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.2);
+  line-height: 1;
+}
+
+.rl-star--filled {
+  color: var(--accent, #d3b488);
+}
+
+.rl-card-desc {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.6;
+  margin: 6px 0 0 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Actions ── */
+.rl-card-actions {
+  display: flex;
+  align-items: flex-start;
+  flex-shrink: 0;
+}
+
+@media (max-width: 560px) {
+  .rl-card-actions {
+    align-items: flex-end;
+  }
+}
+
+.rl-card-remove {
+  padding: 6px 18px;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.rl-card-remove:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+/* ── Skeleton ── */
+.rl-skeleton-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rl-skeleton-card {
+  height: 150px;
+  border-radius: 16px;
+  background-color: var(--surface-2);
+  animation: rl-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes rl-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ── Empty State ── */
+.rl-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 80px 24px;
+  text-align: center;
+  background-color: var(--surface-2);
+  border-radius: 24px;
+  border: 1px dashed rgba(var(--line-rgb, 180 160 130), 0.6);
+}
+
+.rl-empty-icon {
+  font-size: 48px;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.rl-empty-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+}
+
+.rl-empty-subtitle {
+  font-size: 14px;
+  color: var(--ink-mute);
+  margin: 0;
+  max-width: 340px;
+}
+
+.rl-empty-cta {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 28px;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 600;
+  background-color: var(--ink);
+  color: var(--canvas);
+  text-decoration: none;
+  transition: filter 0.2s;
+  margin-top: 8px;
+}
+
+.rl-empty-cta:hover {
+  filter: brightness(1.15);
+}

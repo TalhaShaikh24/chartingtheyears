@@ -1,0 +1,363 @@
+/* =============================================
+   UserPage.css — Vanilla CSS, no Tailwind
+   ============================================= */
+
+.user-page {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  animation: pageIn 0.7s ease both;
+}
+
+@keyframes pageIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Header Row ── */
+.user-page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+@media (min-width: 768px) {
+  .user-page-header {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+}
+
+.user-page-heading-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.user-page-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--ink-mute);
+  margin: 0;
+}
+
+.user-page-title {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.user-page-title-sep {
+  color: var(--line);
+}
+
+.user-page-subtitle {
+  font-size: 14px;
+  color: var(--ink-mute);
+  margin: 0;
+  max-width: 560px;
+}
+
+/* ── Era Switcher ── */
+.era-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 4px;
+  background-color: var(--surface-2);
+  border-radius: 9999px;
+  border: 1px solid rgba(var(--line-rgb, 180 160 130), 0.4);
+}
+
+.era-btn {
+  padding: 8px 20px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+  background-color: transparent;
+  color: var(--ink-soft);
+}
+
+.era-btn:hover {
+  background-color: var(--surface-3);
+  color: var(--ink);
+}
+
+.era-btn.era-btn--active {
+  background-color: var(--ink);
+  color: var(--canvas);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* ── Category Filters ── */
+.category-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+}
+
+.category-filters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
+.cat-btn {
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid rgba(var(--line-rgb, 180 160 130), 0.4);
+  background-color: var(--surface-2);
+  color: var(--ink-soft);
+  transition: border-color 0.2s, background-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+.cat-btn:hover {
+  border-color: rgba(var(--accent-rgb, 200 170 100), 0.4);
+  color: var(--ink);
+}
+
+.cat-btn.cat-btn--active {
+  background-color: var(--ink);
+  color: var(--canvas);
+  border-color: var(--ink);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+}
+
+/* ── Books Grid ── */
+.books-grid-wrap {
+  width: 100%;
+}
+
+.books-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 640px) {
+  .books-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .books-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .books-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+/* ── Loading Skeletons ── */
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.book-skeleton {
+  aspect-ratio: 3 / 4;
+  background-color: var(--surface-2);
+  border-radius: 16px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ── Empty State ── */
+.books-empty {
+  text-align: center;
+  padding: 80px 24px;
+  background-color: var(--surface-2);
+  border-radius: 24px;
+  border: 1px dashed rgba(var(--line-rgb, 180 160 130), 0.6);
+}
+
+.books-empty p {
+  color: var(--ink-mute);
+  margin: 0 0 16px 0;
+}
+
+.books-empty-clear {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+}
+
+.books-empty-clear:hover {
+  text-decoration: underline;
+}
+
+/* ── User Layout ── */
+.user-layout {
+  min-height: 100vh;
+  display: flex;
+  background-color: var(--canvas);
+  overflow: hidden;
+}
+
+.user-layout-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  position: relative;
+}
+
+.user-layout-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 40px 40px 40px;
+}
+
+@media (max-width: 1023px) {
+  .user-layout-content {
+    padding: 0 24px 40px 24px;
+  }
+}
+
+/* ── Checkbox ── */
+.kit-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.kit-checkbox-label:hover .kit-checkbox-text {
+  color: var(--ink);
+}
+
+.kit-checkbox-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kit-checkbox-input {
+  appearance: none;
+  -webkit-appearance: none;
+  height: 20px;
+  width: 20px;
+  border-radius: 5px;
+  border: 2px solid var(--line);
+  background-color: var(--surface-2);
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+  outline: none;
+}
+
+.kit-checkbox-input:checked {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+.kit-checkbox-input:focus {
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb, 200 170 100), 0.3);
+}
+
+.kit-checkbox-checkmark {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  color: var(--canvas);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.kit-checkbox-input:checked ~ .kit-checkbox-checkmark {
+  opacity: 1;
+}
+
+.kit-checkbox-text {
+  font-size: 14px;
+  color: var(--ink-soft);
+  transition: color 0.2s;
+}
+
+/* ── Slider ── */
+.kit-slider-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.kit-slider-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kit-slider-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--ink-soft);
+}
+
+.kit-slider-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--accent);
+}
+
+.kit-slider-input {
+  width: 100%;
+  height: 6px;
+  background-color: var(--line);
+  border-radius: 9999px;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  accent-color: var(--accent);
+  outline: none;
+}
+
+.kit-slider-input::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: var(--accent);
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}

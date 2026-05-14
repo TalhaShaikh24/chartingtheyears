@@ -1,0 +1,593 @@
+/* =============================================
+   book-detail.css — Vanilla CSS, no Tailwind
+   ============================================= */
+
+.bd-page {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  animation: bd-in 0.6s ease both;
+}
+
+@keyframes bd-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Back button ── */
+.bd-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  text-decoration: none;
+  background-color: var(--surface-2);
+  padding: 8px 16px;
+  border-radius: 9999px;
+  width: fit-content;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.bd-back-btn:hover {
+  background-color: var(--surface-3);
+  color: var(--ink);
+}
+
+/* ── Hero layout ── */
+.bd-hero {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+}
+
+@media (max-width: 680px) {
+  .bd-hero { flex-direction: column; }
+}
+
+/* ── Cover ── */
+.bd-hero-cover {
+  flex-shrink: 0;
+  width: 180px;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 680px) {
+  .bd-hero-cover { width: 140px; }
+}
+
+.bd-hero-cover-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+}
+
+/* ── Info column ── */
+.bd-hero-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.bd-breadcrumb {
+  font-size: 13px;
+  color: var(--ink-mute);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bd-breadcrumb-sep {
+  color: var(--line);
+}
+
+.bd-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+@media (max-width: 680px) {
+  .bd-title { font-size: 22px; }
+}
+
+.bd-author {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--accent);
+  margin: 0;
+}
+
+/* ── Stars ── */
+.bd-stars {
+  display: flex;
+  gap: 4px;
+}
+
+.bd-star {
+  font-size: 20px;
+  color: rgba(var(--line-rgb, 180 160 130), 0.4);
+  line-height: 1;
+}
+
+.bd-star--filled {
+  color: var(--ink);
+}
+
+/* ── Tags ── */
+.bd-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bd-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  background-color: var(--surface-3);
+  color: var(--ink-soft);
+}
+
+/* ── Description ── */
+.bd-description {
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--ink-soft);
+  margin: 0;
+  max-width: 720px;
+}
+
+/* ── Reading list button ── */
+.bd-rl-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid var(--surface-3);
+  background-color: var(--surface-2);
+  color: var(--ink-soft);
+  transition: border-color 0.2s, background-color 0.2s, color 0.2s;
+  width: fit-content;
+}
+
+.bd-rl-btn:hover {
+  border-color: var(--accent);
+  background-color: var(--surface-3);
+  color: var(--ink);
+}
+
+.bd-rl-btn--added {
+  background-color: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
+/* ── Related books ── */
+.bd-related {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.bd-related-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+}
+
+.bd-related-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+@media (min-width: 600px) {
+  .bd-related-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (min-width: 900px) {
+  .bd-related-grid { grid-template-columns: repeat(6, 1fr); }
+}
+
+.bd-related-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-decoration: none;
+  border-radius: 14px;
+  overflow: hidden;
+  background-color: var(--surface);
+  border: 1px solid rgba(var(--line-rgb, 180 160 130), 0.4);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.bd-related-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.bd-related-cover {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  display: block;
+}
+
+.bd-related-info {
+  padding: 10px 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bd-related-book-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-height: 1.3;
+}
+
+.bd-related-book-author {
+  font-size: 11px;
+  color: var(--ink-mute);
+  margin: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+.bd-related-book-cat {
+  font-size: 10px;
+  color: var(--ink-mute);
+  margin: 0;
+  padding: 2px 8px;
+  background-color: var(--surface-2);
+  border-radius: 9999px;
+  width: fit-content;
+  margin-top: 2px;
+}
+
+.bd-related-stars {
+  display: flex;
+  gap: 1px;
+  margin-top: 4px;
+}
+
+.bd-related-star {
+  font-size: 11px;
+  color: rgba(var(--line-rgb, 180 160 130), 0.4);
+}
+
+.bd-related-star--on {
+  color: var(--ink);
+}
+
+/* ── Reviews section ── */
+.bd-reviews {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.bd-reviews-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+}
+
+/* ── Review form ── */
+.bd-review-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 28px;
+  background-color: var(--surface);
+  border-radius: 20px;
+  border: 1px solid rgba(var(--line-rgb, 180 160 130), 0.5);
+}
+
+.bd-review-form-heading {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+}
+
+.bd-review-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 560px) {
+  .bd-review-form-row { grid-template-columns: 1fr; }
+}
+
+.bd-review-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bd-review-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-soft);
+}
+
+.bd-review-input,
+.bd-review-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(var(--line-rgb, 180 160 130), 0.5);
+  background-color: var(--canvas);
+  color: var(--ink);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+.bd-review-input:focus,
+.bd-review-textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb, 200 170 100), 0.15);
+}
+
+.bd-review-input:disabled,
+.bd-review-textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Star Picker ── */
+.bd-star-picker {
+  display: flex;
+  gap: 4px;
+}
+
+.bd-star-pick-btn {
+  font-size: 28px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(var(--line-rgb, 180 160 130), 0.4);
+  padding: 0;
+  line-height: 1;
+  transition: color 0.15s, transform 0.15s;
+}
+
+.bd-star-pick-btn:hover,
+.bd-star-pick-btn--on {
+  color: var(--ink);
+}
+
+.bd-star-pick-btn:hover {
+  transform: scale(1.15);
+}
+
+/* ── Form feedback ── */
+.bd-review-error {
+  font-size: 13px;
+  color: var(--danger);
+  margin: 0;
+  padding: 10px 14px;
+  background-color: rgba(180, 40, 40, 0.06);
+  border-radius: 8px;
+  border-left: 3px solid var(--danger);
+}
+
+.bd-review-success {
+  font-size: 13px;
+  color: oklch(0.42 0.12 155);
+  margin: 0;
+  padding: 10px 14px;
+  background-color: rgba(40, 160, 80, 0.07);
+  border-radius: 8px;
+  border-left: 3px solid oklch(0.42 0.12 155);
+}
+
+.bd-review-submit {
+  padding: 12px 28px;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  background-color: var(--ink);
+  color: var(--canvas);
+  transition: filter 0.2s, opacity 0.2s;
+  width: fit-content;
+}
+
+.bd-review-submit:hover:not(:disabled) {
+  filter: brightness(1.15);
+}
+
+.bd-review-submit:disabled {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* ── Reviews list ── */
+.bd-reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.bd-reviews-loading,
+.bd-reviews-empty {
+  font-size: 14px;
+  color: var(--ink-mute);
+  padding: 24px 0;
+}
+
+/* ── Review card ── */
+.bd-review-card {
+  padding: 22px 24px;
+  border-radius: 16px;
+  background-color: var(--surface);
+  border: 1px solid rgba(var(--line-rgb, 180 160 130), 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.bd-review-card-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.bd-review-card-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--ink);
+  color: var(--canvas);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.bd-review-card-author {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+}
+
+.bd-review-card-date {
+  font-size: 12px;
+  color: var(--ink-mute);
+  margin: 0;
+}
+
+.bd-review-card-stars {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.bd-review-star {
+  font-size: 14px;
+  color: rgba(var(--line-rgb, 180 160 130), 0.4);
+}
+
+.bd-review-star--on {
+  color: var(--ink);
+}
+
+.bd-review-card-text {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+/* ── Skeleton ── */
+.bd-skeleton-layout {
+  display: flex;
+  gap: 40px;
+}
+
+.bd-skeleton-cover {
+  width: 180px;
+  aspect-ratio: 3 / 4;
+  border-radius: 14px;
+  background-color: var(--surface-2);
+  flex-shrink: 0;
+  animation: bd-pulse 1.5s ease-in-out infinite;
+}
+
+.bd-skeleton-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 8px;
+}
+
+.bd-skeleton-line {
+  height: 18px;
+  border-radius: 8px;
+  background-color: var(--surface-2);
+  animation: bd-pulse 1.5s ease-in-out infinite;
+  width: 60%;
+}
+
+.bd-skeleton-line--wide { width: 85%; height: 28px; }
+.bd-skeleton-line--short { width: 40%; }
+
+@keyframes bd-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ── Not found ── */
+.bd-not-found {
+  text-align: center;
+  padding: 80px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.bd-not-found h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+}
+
+.bd-not-found p {
+  color: var(--ink-mute);
+  margin: 0;
+}
+
+.bd-not-found-link {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+  margin-top: 8px;
+}
+
+.bd-not-found-link:hover {
+  text-decoration: underline;
+}

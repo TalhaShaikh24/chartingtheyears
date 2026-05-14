@@ -1,0 +1,142 @@
+/* =============================================
+   AuthDropdown.css — Vanilla CSS
+   ============================================= */
+
+.auth-dropdown-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.auth-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px 4px 4px;
+  border-radius: 9999px;
+  transition: background-color 0.2s;
+}
+
+.auth-dropdown-trigger:hover {
+  background-color: rgba(var(--line-rgb, 180 160 130), 0.2);
+}
+
+.auth-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--ink);
+  color: var(--canvas);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.auth-user-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  display: none; /* hidden on small screens */
+}
+
+@media (min-width: 640px) {
+  .auth-user-name {
+    display: block;
+  }
+}
+
+.auth-chevron {
+  color: var(--ink-soft);
+  transition: transform 0.2s;
+}
+
+.auth-chevron.open {
+  transform: rotate(180deg);
+}
+
+.auth-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 220px;
+  background-color: var(--surface);
+  border: 1px solid rgba(var(--line-rgb, 180 160 130), 0.5);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  padding: 8px 0;
+  z-index: 100;
+  animation: dropdownIn 0.2s ease;
+}
+
+@keyframes dropdownIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.auth-dropdown-header {
+  padding: 8px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.auth-dropdown-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.auth-dropdown-email {
+  font-size: 12px;
+  color: var(--ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.auth-dropdown-role {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: var(--surface-3);
+  color: var(--ink);
+  width: fit-content;
+}
+
+.auth-dropdown-divider {
+  height: 1px;
+  background-color: rgba(var(--line-rgb, 180 160 130), 0.4);
+  margin: 8px 0;
+}
+
+.auth-dropdown-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.2s;
+}
+
+.auth-dropdown-item:hover {
+  background-color: var(--surface-2);
+}
+
+.auth-logout-btn {
+  color: var(--danger);
+}

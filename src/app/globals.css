@@ -1,0 +1,92 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-mute: var(--ink-mute);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-coffee: var(--coffee);
+  --color-coffee-2: var(--coffee-2);
+  --color-publish: var(--publish);
+  --color-publish-fg: var(--publish-fg);
+  --color-draft: var(--draft);
+  --color-draft-fg: var(--draft-fg);
+  --color-danger: var(--danger);
+  --color-danger-fg: var(--danger-fg);
+
+  /* Keep backward-compat aliases used by shadcn/ui components */
+  --color-background: var(--canvas);
+  --color-foreground: var(--ink);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--ink);
+  --color-border: var(--line);
+  --color-muted-foreground: var(--ink-mute);
+  --color-destructive: var(--danger);
+}
+
+:root {
+  /* Warm parchment palette */
+  --canvas: oklch(0.974 0.012 80);
+  --surface: oklch(0.955 0.018 78);
+  --surface-2: oklch(0.918 0.024 78);
+  --surface-3: oklch(0.885 0.028 76);
+  --ink: oklch(0.18 0.015 60);
+  --ink-soft: oklch(0.32 0.018 60);
+  --ink-mute: oklch(0.5 0.02 70);
+  --line: oklch(0.85 0.025 75);
+  --accent: oklch(0.78 0.09 70);
+  --accent-soft: oklch(0.86 0.07 75);
+  --coffee: oklch(0.45 0.03 60);
+  --coffee-2: oklch(0.55 0.025 60);
+  --publish: oklch(0.42 0.06 200);
+  --publish-fg: oklch(0.97 0.02 80);
+  --draft: oklch(0.28 0.015 60);
+  --draft-fg: oklch(0.86 0.04 70);
+  --danger: oklch(0.42 0.12 25);
+  --danger-fg: oklch(0.97 0.02 80);
+  --radius: 0.625rem;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-line);
+    outline-color: color-mix(in oklch, var(--color-accent) 50%, transparent);
+  }
+
+  html,
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    letter-spacing: -0.01em;
+  }
+}
+
+.backdrop-blur-md {
+  --tw-backdrop-blur: blur(var(--blur-md)) !important;
+  -webkit-backdrop-filter: var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, );
+  backdrop-filter: var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, )
+}

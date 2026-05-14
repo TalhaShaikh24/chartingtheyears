@@ -1,0 +1,367 @@
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'next/navigation';
+import Link from 'next/link';
+import { useReadingList } from '@/hooks/useReadingList';
+import apiClient from '@/lib/apiClient';
+import './book-detail.css';
+
+interface Book {
+  _id: string;
+  title: string;
+  author: string;
+  category: string;
+  language: string;
+  type: string;
+  rating: number;
+  country: string;
+  historicalYear: number;
+  publicationYear: number;
+  reviewText?: string;
+  tags?: string[];
+  imageUrl?: string;
+}
+
+interface Review {
+  _id: string;
+  author: string;
+  rating: number;
+  text: string;
+  createdAt: string;
+}
+
+interface RelatedBook {
+  _id: string;
+  title: string;
+  author: string;
+  category: string;
+  rating: number;
+  imageUrl?: string;
+}
+
+
+function StarPicker({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const [hovered, setHovered] = useState(0);
+  return (
+    <div className="bd-star-picker" role="group" aria-label="Select rating">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <button
+          key={i}
+          type="button"
+          className={`bd-star-pick-btn${i <= (hovered || value) ? ' bd-star-pick-btn--on' : ''}`}
+          onClick={() => onChange(i)}
+          onMouseEnter={() => setHovered(i)}
+          onMouseLeave={() => setHovered(0)}
+          aria-label={`${i} star${i > 1 ? 's' : ''}`}
+        >
+          ★
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export default function BookDetailPage() {
+  const params = useParams();
+  const id = params?.id as string;
+
+  const [book, setBook] = useState<Book | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [relatedBooks, setRelatedBooks] = useState<RelatedBook[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+
+  // Unified reading list — guest localStorage or authenticated DB
+  const { isInList, toggleBook } = useReadingList();
+
+  // Review form state
+  const [reviewAuthor, setReviewAuthor] = useState('');
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewText, setReviewText] = useState('');
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+
+  // Fetch book
+  useEffect(() => {
+    if (!id) return;
+    setLoading(true);
+    apiClient
+      .get<{ data: Book }>(`/api/books/${id}`)
+      .then((r) => setBook(r.data.data))
+      .catch(() => setBook(null))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  // Fetch reviews
+  useEffect(() => {
+    if (!id) return;
+    setReviewsLoading(true);
+    apiClient
+      .get<{ data: Review[] }>(`/api/reviews?bookId=${id}`)
+      .then((r) => setReviews(r.data.data))
+      .catch(() => setReviews([]))
+      .finally(() => setReviewsLoading(false));
+  }, [id]);
+
+  // Fetch related books (same country)
+  useEffect(() => {
+    if (!book?.country) return;
+    apiClient
+      .get<{ data: RelatedBook[] }>(`/api/books?status=published&limit=8`)
+      .then((r) => {
+        const filtered = r.data.data
+          .filter((b) => b._id !== book._id && b.country === book.country)
+          .slice(0, 6);
+        setRelatedBooks(filtered);
+      })
+      .catch(() => setRelatedBooks([]));
+  }, [book]);
+
+  const handleReadingListToggle = useCallback(() => {
+    if (!book) return;
+    toggleBook(book._id);
+  }, [book, toggleBook]);
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitError(null);
+
+    if (!reviewAuthor.trim()) return setSubmitError('Please enter your name.');
+    if (reviewRating === 0) return setSubmitError('Please select a star rating.');
+    if (!reviewText.trim() || reviewText.trim().length < 10) return setSubmitError('Review must be at least 10 characters.');
+
+    setSubmitting(true);
+    try {
+      const res = await apiClient.post<{ data: Review }>('/api/reviews', {
+        bookId: id,
+        author: reviewAuthor.trim(),
+        rating: reviewRating,
+        text: reviewText.trim(),
+      });
+      setReviews((prev) => [res.data.data, ...prev]);
+      setReviewAuthor('');
+      setReviewRating(0);
+      setReviewText('');
+      setSubmitSuccess(true);
+      setTimeout(() => setSubmitSuccess(false), 4000);
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || 'Failed to submit review. Please try again.';
+      setSubmitError(msg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="bd-page">
+        <div className="bd-skeleton-layout">
+          <div className="bd-skeleton-cover" />
+          <div className="bd-skeleton-content">
+            <div className="bd-skeleton-line bd-skeleton-line--wide" />
+            <div className="bd-skeleton-line" />
+            <div className="bd-skeleton-line bd-skeleton-line--short" />
+            <div className="bd-skeleton-line bd-skeleton-line--short" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!book) {
+    return (
+      <div className="bd-page">
+        <div className="bd-not-found">
+          <h2>Book not found</h2>
+          <p>This book may have been removed or the link is incorrect.</p>
+          <Link href="/user" className="bd-not-found-link">← Back to Atlas</Link>
+        </div>
+      </div>
+    );
+  }
+
+  const imgSrc = book.imageUrl || `https://placehold.co/400x533/EADCCB/453C38?text=${encodeURIComponent(book.title)}`;
+
+  return (
+    <div className="bd-page">
+      {/* Back link */}
+      <Link href="/user" className="bd-back-btn">← Back to Dashboard</Link>
+
+      {/* Book Hero */}
+      <div className="bd-hero">
+        {/* Cover */}
+        <div className="bd-hero-cover">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={imgSrc} alt={`Cover of ${book.title}`} className="bd-hero-cover-img" />
+        </div>
+
+        {/* Info */}
+        <div className="bd-hero-info">
+          <p className="bd-breadcrumb">
+            <span>{book.type}</span>
+            <span className="bd-breadcrumb-sep">·</span>
+            <span>{book.language}</span>
+          </p>
+
+          <h1 className="bd-title">
+            {book.title} ({book.publicationYear})
+          </h1>
+
+          <p className="bd-author">{book.author}</p>
+
+          {/* Stars */}
+          <div className="bd-stars" aria-label={`Rating: ${book.rating} out of 5`}>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <span key={i} className={`bd-star${i <= Math.round(book.rating) ? ' bd-star--filled' : ''}`}>
+                ★
+              </span>
+            ))}
+          </div>
+
+          {/* Tags */}
+          {book.tags && book.tags.length > 0 && (
+            <div className="bd-tags">
+              {book.tags.map((tag) => (
+                <span key={tag} className="bd-tag">{tag}</span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Description */}
+      {book.reviewText && (
+        <p className="bd-description">{book.reviewText}</p>
+      )}
+
+      {/* Reading list button */}
+      <button
+        type="button"
+        className={`bd-rl-btn${isInList(book._id) ? ' bd-rl-btn--added' : ''}`}
+        onClick={handleReadingListToggle}
+      >
+        {isInList(book._id) ? '✓ Saved to reading list' : '☆ Add to reading list'}
+      </button>
+
+      {/* Related books */}
+      {relatedBooks.length > 0 && (
+        <section className="bd-related">
+          <h2 className="bd-related-title">More from {book.country}</h2>
+          <div className="bd-related-grid">
+            {relatedBooks.map((rb) => (
+              <Link key={rb._id} href={`/user/books/${rb._id}`} className="bd-related-card">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={rb.imageUrl || `https://placehold.co/400x533/EADCCB/453C38?text=${encodeURIComponent(rb.title)}`}
+                  alt={rb.title}
+                  className="bd-related-cover"
+                  loading="lazy"
+                />
+                <div className="bd-related-info">
+                  <p className="bd-related-book-title">{rb.title}</p>
+                  <p className="bd-related-book-author">{rb.author}</p>
+                  <p className="bd-related-book-cat">{rb.category}</p>
+                  <div className="bd-related-stars">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <span key={i} className={`bd-related-star${i <= Math.round(rb.rating) ? ' bd-related-star--on' : ''}`}>★</span>
+                    ))}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Reviews section */}
+      <section className="bd-reviews">
+        <h2 className="bd-reviews-title">Reviews</h2>
+
+        {/* Submit form */}
+        <form onSubmit={handleReviewSubmit} className="bd-review-form" noValidate>
+          <h3 className="bd-review-form-heading">Write a Review</h3>
+
+          <div className="bd-review-form-row">
+            <div className="bd-review-form-field">
+              <label className="bd-review-label" htmlFor="review-author">Your name</label>
+              <input
+                id="review-author"
+                type="text"
+                className="bd-review-input"
+                placeholder="e.g. Jane Smith"
+                value={reviewAuthor}
+                onChange={(e) => setReviewAuthor(e.target.value)}
+                disabled={submitting}
+                maxLength={100}
+              />
+            </div>
+            <div className="bd-review-form-field">
+              <label className="bd-review-label">Your rating</label>
+              <StarPicker value={reviewRating} onChange={setReviewRating} />
+            </div>
+          </div>
+
+          <div className="bd-review-form-field">
+            <label className="bd-review-label" htmlFor="review-text">Review</label>
+            <textarea
+              id="review-text"
+              className="bd-review-textarea"
+              placeholder="Share your thoughts about this book..."
+              value={reviewText}
+              onChange={(e) => setReviewText(e.target.value)}
+              disabled={submitting}
+              rows={4}
+              maxLength={2000}
+            />
+          </div>
+
+          {submitError && (
+            <p className="bd-review-error" role="alert">{submitError}</p>
+          )}
+          {submitSuccess && (
+            <p className="bd-review-success" role="status">Review submitted! Thank you.</p>
+          )}
+
+          <button type="submit" className="bd-review-submit" disabled={submitting}>
+            {submitting ? 'Submitting…' : 'Submit Review'}
+          </button>
+        </form>
+
+        {/* Review list */}
+        {reviewsLoading ? (
+          <div className="bd-reviews-loading">Loading reviews…</div>
+        ) : reviews.length === 0 ? (
+          <p className="bd-reviews-empty">No reviews yet. Be the first to write one!</p>
+        ) : (
+          <div className="bd-reviews-list">
+            {reviews.map((rev) => (
+              <div key={rev._id} className="bd-review-card">
+                <div className="bd-review-card-header">
+                  <div className="bd-review-card-avatar" aria-hidden="true">
+                    {(rev.author || 'Anonymous').charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="bd-review-card-author">{rev.author || 'Anonymous'}</p>
+                    <p className="bd-review-card-date">
+                      {new Date(rev.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric', month: 'long', day: 'numeric',
+                      })}
+                    </p>
+                  </div>
+                  <div className="bd-review-card-stars">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <span key={i} className={`bd-review-star${i <= rev.rating ? ' bd-review-star--on' : ''}`}>★</span>
+                    ))}
+                  </div>
+                </div>
+                <p className="bd-review-card-text">{rev.text}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}

@@ -1,0 +1,103 @@
+/* =============================================
+   UserTopbar.css — Vanilla CSS, no Tailwind
+   ============================================= */
+
+.user-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 32px 40px;
+  gap: 24px;
+}
+
+.user-topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-topbar-nav-link {
+  padding: 10px 20px;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+  background-color: var(--surface-2);
+  color: var(--ink-soft);
+}
+
+.user-topbar-nav-link:hover {
+  background-color: var(--surface-3);
+  color: var(--ink);
+}
+
+.user-topbar-nav-link.active {
+  background-color: var(--ink);
+  color: var(--canvas);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.user-topbar-lang {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background-color: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 700;
+  border-radius: 9999px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: filter 0.2s;
+  border: none;
+}
+
+.user-topbar-lang:hover {
+  filter: brightness(0.95);
+}
+
+/* Right-hand action area */
+.user-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Guest auth buttons */
+.user-topbar-auth-btns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-topbar-auth-btn {
+  padding: 9px 20px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+.user-topbar-auth-btn--ghost {
+  background-color: transparent;
+  color: var(--ink-soft);
+  border: 1.5px solid var(--line);
+}
+
+.user-topbar-auth-btn--ghost:hover {
+  background-color: var(--surface-2);
+  color: var(--ink);
+}
+
+.user-topbar-auth-btn--primary {
+  background-color: var(--ink);
+  color: var(--canvas);
+  border: 1.5px solid transparent;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.user-topbar-auth-btn--primary:hover {
+  filter: brightness(0.88);
+}

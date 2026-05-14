@@ -1,0 +1,118 @@
+/* =============================================
+   about.css — Vanilla CSS, no Tailwind
+   ============================================= */
+
+.about-page {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  max-width: 1000px;
+  animation: aboutIn 0.6s ease both;
+}
+
+@keyframes aboutIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Intro Section ── */
+.about-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.about-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 8px 0;
+  letter-spacing: -0.02em;
+}
+
+.about-body {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink);
+  margin: 0;
+  max-width: 800px;
+}
+
+.about-accent {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--accent);
+  margin: 0;
+  max-width: 800px;
+}
+
+/* ── Features Grid ── */
+.about-features {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 600px) {
+  .about-features {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 900px) {
+  .about-features {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.about-feature-card {
+  background-color: #2b2621;
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: #fff;
+}
+
+.about-feature-icon {
+  color: var(--accent);
+  display: flex;
+}
+
+.about-feature-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.about-feature-desc {
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0;
+}
+
+/* ── Reviewer Section ── */
+.about-reviewer {
+  background-color: #2b2621;
+  border-radius: 16px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.about-reviewer-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.about-reviewer-body {
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+}
