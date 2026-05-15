@@ -1,142 +1,290 @@
 /* =============================================
-   AuthDropdown.css — Vanilla CSS
+   AuthDropdown.css — Vanilla CSS, no Tailwind
    ============================================= */
 
-.auth-dropdown-wrap {
+/* ── Wrapper ── */
+.auth-wrap {
   position: relative;
   display: inline-block;
 }
 
-.auth-dropdown-trigger {
+/* ── Trigger button (shared) ── */
+.auth-trigger {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: none;
-  border: none;
+  background: var(--surface-2);
+  border: 1px solid #E1DDD5;
   cursor: pointer;
-  padding: 4px 8px 4px 4px;
+  padding: 6px 12px 6px 6px;
   border-radius: 9999px;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
 }
 
-.auth-dropdown-trigger:hover {
-  background-color: rgba(var(--line-rgb, 180 160 130), 0.2);
+.auth-trigger:hover {
+  background-color: var(--surface-3);
+  border-color: var(--line);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
+/* Guest trigger variant */
+.auth-trigger--guest {
+  background: var(--ink);
+  border-color: transparent;
+}
+
+.auth-trigger--guest:hover {
+  background: var(--ink-soft);
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.auth-trigger--guest .auth-name {
+  color: var(--canvas);
+}
+
+.auth-trigger--guest .auth-chevron {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* ── Avatar circle ── */
 .auth-avatar {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background-color: var(--ink);
+  background-color: var(--coffee);
   color: var(--canvas);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
   letter-spacing: 0.5px;
+  flex-shrink: 0;
 }
 
-.auth-user-name {
+/* ── Guest icon circle ── */
+.auth-guest-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.15);
+  color: var(--canvas);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ── Trigger name text ── */
+.auth-name {
   font-size: 13px;
   font-weight: 600;
   color: var(--ink);
-  display: none; /* hidden on small screens */
+  display: none;
 }
 
 @media (min-width: 640px) {
-  .auth-user-name {
+  .auth-name {
     display: block;
   }
 }
 
+/* ── Chevron ── */
 .auth-chevron {
-  color: var(--ink-soft);
-  transition: transform 0.2s;
+  color: var(--ink-mute);
+  transition: transform 0.2s ease;
 }
 
 .auth-chevron.open {
   transform: rotate(180deg);
 }
 
-.auth-dropdown-menu {
+/* ── Dropdown menu (shared shell) ── */
+.auth-menu {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 10px);
   right: 0;
-  width: 220px;
+  width: 240px;
   background-color: var(--surface);
-  border: 1px solid rgba(var(--line-rgb, 180 160 130), 0.5);
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-  padding: 8px 0;
-  z-index: 100;
-  animation: dropdownIn 0.2s ease;
+  border: 1px solid #E1DDD5;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  z-index: 200;
+  animation: authMenuIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes dropdownIn {
-  from { opacity: 0; transform: translateY(-8px); }
-  to   { opacity: 1; transform: translateY(0); }
+@keyframes authMenuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
-.auth-dropdown-header {
-  padding: 8px 16px;
+/* ── Logged-in header ── */
+.auth-menu-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+}
+
+.auth-menu-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--coffee);
+  color: var(--canvas);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.auth-menu-info {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  overflow: hidden;
 }
 
-.auth-dropdown-name {
+.auth-menu-name {
   font-size: 14px;
   font-weight: 600;
   color: var(--ink);
-}
-
-.auth-dropdown-email {
-  font-size: 12px;
-  color: var(--ink-soft);
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.auth-dropdown-role {
-  display: inline-block;
-  margin-top: 4px;
+.auth-menu-email {
+  font-size: 12px;
+  color: var(--ink-mute);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Role badge ── */
+.auth-menu-role {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 16px 12px;
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.05em;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background-color: var(--surface-3);
-  color: var(--ink);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background-color: var(--surface-2);
+  color: var(--ink-mute);
+  border: 1px solid #E1DDD5;
   width: fit-content;
 }
 
-.auth-dropdown-divider {
+/* ── Divider ── */
+.auth-menu-divider {
   height: 1px;
-  background-color: rgba(var(--line-rgb, 180 160 130), 0.4);
-  margin: 8px 0;
+  background-color: #E1DDD5;
+  margin: 0;
 }
 
-.auth-dropdown-item {
+/* ── Menu items ── */
+.auth-menu-item {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
+  gap: 10px;
+  padding: 12px 16px;
   background: none;
   border: none;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   text-align: left;
-  transition: background-color 0.2s;
+  color: var(--ink-soft);
+  transition: background-color 0.15s, color 0.15s;
 }
 
-.auth-dropdown-item:hover {
+.auth-menu-item:hover {
   background-color: var(--surface-2);
+  color: var(--ink);
 }
 
-.auth-logout-btn {
+.auth-menu-item--danger {
   color: var(--danger);
+}
+
+.auth-menu-item--danger:hover {
+  background-color: oklch(0.96 0.01 25);
+  color: var(--danger);
+}
+
+/* ── Guest state header ── */
+.auth-menu-guest-header {
+  padding: 20px 16px 16px;
+}
+
+.auth-menu-guest-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 6px;
+}
+
+.auth-menu-guest-sub {
+  font-size: 12px;
+  color: var(--ink-mute);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ── Guest CTA buttons ── */
+.auth-menu-guest-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px 16px;
+}
+
+.auth-menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: filter 0.2s, box-shadow 0.2s;
+  text-align: center;
+}
+
+.auth-menu-btn--primary {
+  background-color: var(--ink);
+  color: var(--canvas);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.auth-menu-btn--primary:hover {
+  filter: brightness(1.15);
+}
+
+.auth-menu-btn--ghost {
+  background-color: transparent;
+  color: var(--ink-soft);
+  border: 1.5px solid #E1DDD5;
+}
+
+.auth-menu-btn--ghost:hover {
+  background-color: var(--surface-2);
+  border-color: var(--line);
+  color: var(--ink);
 }

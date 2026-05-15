@@ -14,12 +14,11 @@ export async function GET(request: NextRequest) {
       const defaultSettings = new Settings({
         siteName: 'Charting the Years',
         tagline: 'Interactive atlas of historical literature',
-        adminEmail: 'ryan@historybookmap.com',
+        adminEmail: 'admin@chartingtheyears.com',
         defaultLanguage: 'English',
         defaultEra: '1900-1920',
         booksPerPage: 20,
-        mapStyle: 'Dark Ocean',
-        // Display options defaults (kept minimal for UI consistency)
+        mapStyle: 'Parchment',
       });
 
       settings = await defaultSettings.save();
@@ -30,7 +29,7 @@ export async function GET(request: NextRequest) {
       data: settings,
     });
   } catch (error) {
-    console.error('[v0] GET /api/settings error:', error);
+    console.error('[settings] GET error:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch settings' },
       { status: 500 }
@@ -42,10 +41,7 @@ export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
 
-    // Log incoming payload for debugging
-    console.log('[settings] PATCH payload:', body);
-
-    // Validate with Zod - allow partial updates by using partial schema
+    // Validate with Zod — allow partial updates
     const validated = SettingsSchema.partial().parse(body);
 
     await connectDB();
@@ -61,7 +57,7 @@ export async function PATCH(request: NextRequest) {
       data: settings,
     });
   } catch (error: any) {
-    console.error('[v0] PATCH /api/settings error:', error);
+    console.error('[settings] PATCH error:', error);
     if (error.errors) {
       return NextResponse.json(
         { success: false, error: 'Validation error', details: error.errors },

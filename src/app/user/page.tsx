@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { HistoricalMap } from '@/components/features/HistoricalMap';
 import { BookCard } from '@/components/features/BookCard';
 import { BookPopupModal } from '@/components/features/BookPopupModal';
 import { useReadingList } from '@/hooks/useReadingList';
+import { useFilter } from '@/contexts/FilterContext';
+import { useSettings } from '@/contexts/SettingsContext';
 import apiClient from '@/lib/apiClient';
 import './user.css';
 
@@ -24,7 +26,7 @@ interface Book {
   imageUrl?: string;
 }
 
-const eras = ['Ancient', '1900-1920', '1940', '1980', '2000', '2026'];
+const eras = ['All', 'Ancient', '1900-1920', '1940', '1980', '2000', '2026'];
 const categories = [
   'All',
   'Social History',
@@ -35,13 +37,26 @@ const categories = [
   'Historical Novels',
 ];
 
-export default function UserHomePage() {
-  const [activeEra, setActiveEra] = useState('1900-1920');
+function HomeContent() {
+  const { settings } = useSettings();
+
+  // Initialise era from settings; update when settings load (once)
+  const [activeEra, setActiveEra] = useState<string>('All');
+  const [eraInitialised, setEraInitialised] = useState(false);
+  useEffect(() => {
+    if (!eraInitialised && settings.defaultEra) {
+      setActiveEra(settings.defaultEra);
+      setEraInitialised(true);
+    }
+  }, [settings.defaultEra, eraInitialised]);
+
   const [activeCategory, setActiveCategory] = useState('All');
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [popupBook, setPopupBook] = useState<Book | null>(null);
+
+  const { filters } = useFilter();
 
   // Unified reading list — works for guests (localStorage) and logged-in users (DB)
   const { isInList, toggleBook } = useReadingList();
@@ -63,11 +78,33 @@ export default function UserHomePage() {
 
   const filteredBooks = books.filter((book) => {
     if (activeCategory !== 'All' && book.category !== activeCategory) return false;
-    if (activeEra === '1900-1920' && (book.historicalYear < 1900 || book.historicalYear > 1920)) return false;
-    if (activeEra === '1940' && (book.historicalYear < 1930 || book.historicalYear > 1950)) return false;
     if (selectedCountry && book.country !== selectedCountry) return false;
+
+    if (activeEra === 'Ancient' && book.publicationYear >= 1900) return false;
+    if (activeEra === '1900-1920' && (book.publicationYear < 1900 || book.publicationYear > 1920)) return false;
+    if (activeEra === '1940' && (book.publicationYear <= 1920 || book.publicationYear > 1960)) return false;
+    if (activeEra === '1980' && (book.publicationYear <= 1960 || book.publicationYear > 1990)) return false;
+    if (activeEra === '2000' && (book.publicationYear <= 1990 || book.publicationYear > 2010)) return false;
+    if (activeEra === '2026' && book.publicationYear <= 2010) return false;
+
+    // Sidebar Filters
+    if (filters.lang.length > 0 && !filters.lang.includes(book.language)) return false;
+    if (filters.type.length > 0 && !filters.type.includes(book.type)) return false;
+    if (book.publicationYear < filters.yearRange[0]) return false;
+    if (book.publicationYear > filters.yearRange[1]) return false;
+    if (filters.rating > 0 && book.rating < filters.rating) return false;
+    if (filters.tags) {
+      const tagSearch = filters.tags.toLowerCase();
+      const match = book.tags?.some(t => t.toLowerCase().includes(tagSearch)) || false;
+      if (!match) return false;
+    }
+
     return true;
   });
+
+  // Respect booksPerPage setting from admin
+  const booksPerPage = settings.booksPerPage || 20;
+  const pagedBooks = filteredBooks.slice(0, booksPerPage);
 
   const highlightedCountries = Array.from(new Set(filteredBooks.map((b) => b.country)));
 
@@ -132,9 +169,9 @@ export default function UserHomePage() {
                 <div key={i} className="book-skeleton" />
               ))}
             </div>
-          ) : filteredBooks.length > 0 ? (
+          ) : pagedBooks.length > 0 ? (
             <div className="books-grid">
-              {filteredBooks.map((book) => (
+              {pagedBooks.map((book) => (
                 <BookCard
                   key={book._id}
                   _id={book._id}
@@ -170,5 +207,13 @@ export default function UserHomePage() {
         isInReadingList={popupBook ? isInList(popupBook._id) : false}
       />
     </div>
+  );
+}
+
+export default function UserHomePage() {
+  return (
+    <Suspense fallback={<div className="user-page">Loading...</div>}>
+      <HomeContent />
+    </Suspense>
   );
 }

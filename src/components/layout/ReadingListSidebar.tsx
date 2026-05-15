@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Icon } from '@/components/ui/kit/Icon';
 import { useReadingList } from '@/hooks/useReadingList';
+import { useAuth } from '@/contexts/AuthContext';
+import { useSettings } from '@/contexts/SettingsContext';
 import apiClient from '@/lib/apiClient';
 import './ReadingListSidebar.css';
 
@@ -26,6 +28,9 @@ function SidebarContent() {
   const [books, setBooks] = useState<Book[]>([]);
   const searchParams = useSearchParams();
   const activeCategory = searchParams?.get('category') || 'All';
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
+  const { settings } = useSettings();
 
   // Unified hook — IDs come from localStorage (guest) or DB (auth)
   const { ids, isReady } = useReadingList();
@@ -68,7 +73,7 @@ function SidebarContent() {
           <span className="rl-sidebar-logo-icon">
             <Icon name="logo" size={26} />
           </span>
-          <span className="rl-sidebar-logo-name">Charting the Years</span>
+          <span className="rl-sidebar-logo-name">{settings.siteName}</span>
         </Link>
       </div>
 
@@ -115,9 +120,11 @@ function SidebarContent() {
       </nav>
 
       <div className="rl-sidebar-footer">
-        <Link href="/admin/dashboard" className="rl-admin-btn">
-          Click Here to Visit Admin Dashboard
-        </Link>
+        {isAdmin && (
+          <Link href="/admin/dashboard" className="rl-admin-btn">
+            Click Here to Visit Admin Dashboard
+          </Link>
+        )}
       </div>
     </aside>
   );

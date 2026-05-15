@@ -50,7 +50,7 @@ export const SettingsSchema = z.object({
   defaultLanguage: z.string().default('English'),
   defaultEra: z.string().default('1900-1920'),
   booksPerPage: z.number().default(20),
-  mapStyle: z.string().default('Dark ocean'),
+  mapStyle: z.string().default('Parchment'),
   displayTheme: z.enum(['system', 'light', 'dark']).default('system'),
   fontFamily: z.string().optional(),
   fontScale: z.number().min(0.75).max(1.5).default(1),

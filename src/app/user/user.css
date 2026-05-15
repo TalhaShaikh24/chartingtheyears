@@ -75,13 +75,22 @@
 /* ── Era Switcher ── */
 .era-switcher {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   padding: 4px;
   background-color: var(--surface-2);
   border-radius: 9999px;
   border: 1px solid rgba(var(--line-rgb, 180 160 130), 0.4);
+  
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  max-width: 100%;
+}
+
+.era-switcher::-webkit-scrollbar {
+  display: none;
 }
 
 .era-btn {
@@ -94,6 +103,7 @@
   transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
   background-color: transparent;
   color: var(--ink-soft);
+  flex-shrink: 0;
 }
 
 .era-btn:hover {

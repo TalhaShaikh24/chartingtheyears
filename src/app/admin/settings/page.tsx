@@ -160,9 +160,15 @@ export default function SettingsPage() {
               <KitSelect
                 {...register('booksPerPage', { valueAsNumber: true })}
                 options={[
+                  { value: 3, label: '3' },
+                  { value: 5, label: '5' },
+                  { value: 7, label: '7' },
                   { value: 10, label: '10' },
+                  { value: 15, label: '15' },
                   { value: 20, label: '20' },
-                  { value: 50, label: '50' },
+                  { value: 25, label: '25' },
+                  { value: 30, label: '30' },
+                  { value: 50, label: '50' }
                 ]}
               />
             </div>
@@ -171,6 +177,7 @@ export default function SettingsPage() {
               <KitSelect
                 {...register('mapStyle')}
                 options={[
+                  { value: 'Parchment', label: 'Parchment (Default)' },
                   { value: 'Dark Ocean', label: 'Dark Ocean' },
                   { value: 'Light Ocean', label: 'Light Ocean' },
                 ]}

@@ -7,12 +7,18 @@
   flex-direction: column;
   gap: 36px;
   animation: pageIn 0.6s ease both;
-  max-width: 900px;
 }
 
 @keyframes pageIn {
-  from { opacity: 0; transform: translateY(14px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ── Header ── */
@@ -55,7 +61,8 @@
   gap: 20px;
   padding: 20px;
   border-radius: 16px;
-  background-color: #2b2520; /* Dark brown background */
+  background-color: #2b2520;
+  /* Dark brown background */
   overflow: hidden;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -89,7 +96,7 @@
   border-radius: 4px;
   object-fit: cover;
   display: block;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 /* ── Card Body ── */
@@ -216,8 +223,15 @@
 }
 
 @keyframes rl-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
 }
 
 /* ── Empty State ── */

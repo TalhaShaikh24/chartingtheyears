@@ -29,7 +29,7 @@ const settingsSchema = new mongoose.Schema(
     },
     mapStyle: {
       type: String,
-      default: 'Dark ocean',
+      default: 'Parchment',
     },
     // Display options
     displayTheme: {
