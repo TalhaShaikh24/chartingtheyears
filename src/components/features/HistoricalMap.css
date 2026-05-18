@@ -1,7 +1,10 @@
 /* =============================================
-   HistoricalMap.css — Vanilla CSS, no Tailwind
+   HistoricalMap.css — Premium cinematic animations
    ============================================= */
 
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   WRAPPER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 .map-wrapper {
   position: relative;
   width: 100%;
@@ -11,8 +14,20 @@
   border: 1px solid #E1DDD5;
   overflow: hidden;
   box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.7s ease, border-color 0.7s ease;
 }
 
+.map-wrapper.era-active {
+  box-shadow:
+    inset 0 2px 8px rgba(0, 0, 0, 0.06),
+    0 0 0 2px oklch(0.78 0.09 70 / 0.20),
+    0 6px 32px oklch(0.78 0.09 70 / 0.12);
+  border-color: oklch(0.78 0.09 70 / 0.35);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   DOT PATTERN BACKGROUND
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 .map-dot-pattern {
   position: absolute;
   inset: 0;
@@ -20,14 +35,252 @@
   pointer-events: none;
   background-image: radial-gradient(var(--ink) 0.5px, transparent 0.5px);
   background-size: 24px 24px;
+  transition: opacity 0.6s ease;
+  z-index: 1;
 }
 
-.map-svg {
-  width: 100%;
-  height: 100%;
+.map-wrapper.era-active .map-dot-pattern {
+  opacity: 0.055;
 }
 
-/* ── Country Selection Overlay ── */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CINEMATIC ERA-CHANGE FLASH
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.map-era-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+  border-radius: inherit;
+  animation: eraFlash 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    oklch(0.78 0.09 70 / 0.00),
+    oklch(0.78 0.09 70 / 0.20) 90deg,
+    oklch(0.78 0.09 70 / 0.00) 180deg,
+    oklch(0.78 0.09 70 / 0.12) 270deg,
+    oklch(0.78 0.09 70 / 0.00)
+  );
+}
+
+@keyframes eraFlash {
+  0%   { opacity: 0; transform: scale(0.88) rotate(0deg); }
+  20%  { opacity: 1; transform: scale(1.02) rotate(15deg); }
+  55%  { opacity: 0.6; transform: scale(1.01) rotate(35deg); }
+  100% { opacity: 0; transform: scale(1.04) rotate(60deg); }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ERA ACTIVE BADGE (top-left chip)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.map-era-badge {
+  position: absolute;
+  top: 20px;
+  left: 24px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px 6px 10px;
+  background: oklch(0.78 0.09 70 / 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid oklch(0.78 0.09 70 / 0.40);
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  color: oklch(0.28 0.04 68);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  pointer-events: none;
+  z-index: 20;
+  animation: badgeSpringIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.map-era-badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: oklch(0.63 0.14 68);
+  box-shadow: 0 0 0 0 oklch(0.63 0.14 68 / 0.7);
+  animation: ripplePulse 2.2s ease-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes badgeSpringIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.7); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes ripplePulse {
+  0%   { box-shadow: 0 0 0 0 oklch(0.63 0.14 68 / 0.7); transform: scale(1); }
+  50%  { box-shadow: 0 0 0 6px oklch(0.63 0.14 68 / 0.0); transform: scale(1.15); }
+  100% { box-shadow: 0 0 0 0 oklch(0.63 0.14 68 / 0.0); transform: scale(1); }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   IDLE STATE OVERLAY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.map-idle-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(
+    ellipse 70% 60% at 50% 50%,
+    oklch(0.97 0.012 80 / 0.82) 0%,
+    oklch(0.97 0.012 80 / 0.55) 55%,
+    transparent 100%
+  );
+  backdrop-filter: blur(1px);
+  -webkit-backdrop-filter: blur(1px);
+  border-radius: inherit;
+  animation: idleOverlayIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  pointer-events: none;
+}
+
+@keyframes idleOverlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.map-idle-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  animation: idleContentRise 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+}
+
+@keyframes idleContentRise {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.map-idle-globe {
+  font-size: 36px;
+  line-height: 1;
+  animation: idleGlobeSpin 12s linear infinite;
+  filter: drop-shadow(0 4px 12px oklch(0.78 0.09 70 / 0.35));
+  margin-bottom: 4px;
+}
+
+@keyframes idleGlobeSpin {
+  0%   { transform: rotate(-4deg) scale(1);    }
+  25%  { transform: rotate(0deg)  scale(1.06); }
+  50%  { transform: rotate(4deg)  scale(1);    }
+  75%  { transform: rotate(0deg)  scale(1.06); }
+  100% { transform: rotate(-4deg) scale(1);    }
+}
+
+.map-idle-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: oklch(0.22 0.015 60);
+  margin: 0;
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 8px oklch(0.97 0.012 80 / 0.8);
+}
+
+.map-idle-hint {
+  font-size: 13px;
+  font-weight: 400;
+  color: oklch(0.45 0.02 70);
+  margin: 0;
+  max-width: 280px;
+  line-height: 1.55;
+}
+
+.map-idle-eras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 6px;
+}
+
+.map-idle-era-chip {
+  padding: 4px 11px;
+  background: oklch(0.78 0.09 70 / 0.12);
+  border: 1px solid oklch(0.78 0.09 70 / 0.30);
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: oklch(0.32 0.04 68);
+  letter-spacing: 0.04em;
+  animation: chipBounceIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.map-idle-era-chip:nth-child(1) { animation-delay: 0.25s; }
+.map-idle-era-chip:nth-child(2) { animation-delay: 0.32s; }
+.map-idle-era-chip:nth-child(3) { animation-delay: 0.39s; }
+.map-idle-era-chip:nth-child(4) { animation-delay: 0.46s; }
+.map-idle-era-chip:nth-child(5) { animation-delay: 0.53s; }
+
+@keyframes chipBounceIn {
+  from { opacity: 0; transform: scale(0.6) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   GEOGRAPHY CLASSES & ANIMATIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.map-geo {
+  transition:
+    fill 550ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 700ms cubic-bezier(0.4, 0, 0.2, 1),
+    filter 550ms cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: fill, opacity, filter;
+}
+
+.map-geo--muted {
+  transition:
+    fill 700ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 800ms cubic-bezier(0.4, 0, 0.2, 1),
+    filter 600ms ease;
+}
+
+/* Country reveal wave — runs once on era activation */
+.map-geo--highlighted {
+  animation: countryReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes countryReveal {
+  0%   { opacity: 0.0; filter: brightness(1.6) saturate(0.3); }
+  30%  { opacity: 0.7; filter: brightness(1.3) saturate(0.8); }
+  70%  { opacity: 0.95; filter: brightness(1.05) saturate(1.1); }
+  100% { opacity: 1;   filter: brightness(1) saturate(1); }
+}
+
+/* Medium intensity — subtle shimmer */
+.map-geo--medium {
+  animation:
+    countryReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) both,
+    shimmerPulse 4s ease-in-out 1s infinite;
+}
+
+@keyframes shimmerPulse {
+  0%, 100% { filter: brightness(1) saturate(1); }
+  50%       { filter: brightness(1.08) saturate(1.15); }
+}
+
+/* High intensity — persistent glow breath + reveal */
+.map-geo--high {
+  animation:
+    countryReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) both,
+    glowBreath 3s ease-in-out 0.9s infinite;
+}
+
+@keyframes glowBreath {
+  0%, 100% { filter: brightness(1) saturate(1)    drop-shadow(0 0 3px oklch(0.63 0.14 68 / 0.5)); }
+  50%       { filter: brightness(1.12) saturate(1.2) drop-shadow(0 0 10px oklch(0.63 0.14 68 / 0.8)); }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   COUNTRY SELECTION OVERLAY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 .map-selection-overlay {
   position: absolute;
   bottom: 28px;
@@ -36,43 +289,69 @@
   background-color: #FAF6F1;
   border-radius: 24px;
   border: 1px solid #E8DDD0;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.10);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.10),
+    0 2px 8px rgba(0, 0, 0, 0.06),
+    0 0 0 1px oklch(0.78 0.09 70 / 0.14);
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  animation: overlayFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: overlaySpringIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  z-index: 20;
 }
 
-@keyframes overlayFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px) scale(0.97);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+@keyframes overlaySpringIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.93); }
+  to   { opacity: 1; transform: translateY(0)   scale(1);    }
 }
 
 .map-overlay-country {
-  font-size: 34px;
+  font-size: 32px;
   font-weight: 800;
   color: #1C1917;
   margin: 0 0 4px;
   letter-spacing: -0.03em;
   line-height: 1.1;
+  animation: textSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.06s both;
 }
 
 .map-overlay-era {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 400;
   color: #8C7F72;
   margin: 0;
-  letter-spacing: 0;
+  animation: textSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both;
 }
 
+.map-overlay-count {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: oklch(0.42 0.07 68);
+  animation: textSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both;
+}
+
+.map-overlay-count-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: oklch(0.63 0.14 68);
+  flex-shrink: 0;
+  animation: ripplePulse 2.2s ease-out 0.5s infinite;
+}
+
+@keyframes textSlideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   BOOK LIST INSIDE OVERLAY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 .map-book-list {
   display: flex;
   flex-direction: column;
@@ -87,15 +366,26 @@
   background-color: #C9B99A;
   border-radius: 14px;
   cursor: pointer;
-  transition: background-color 0.18s, transform 0.15s;
   border: none;
   width: 100%;
   text-align: left;
+  opacity: 0;
+  animation: bookRowSlide 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transition:
+    background-color 0.18s,
+    transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.2s;
+}
+
+@keyframes bookRowSlide {
+  from { opacity: 0; transform: translateX(-14px); }
+  to   { opacity: 1; transform: translateX(0);     }
 }
 
 .map-book-row:hover {
   background-color: #BCA98A;
-  transform: translateX(2px);
+  transform: translateX(4px);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.12);
 }
 
 .map-book-row-title {
@@ -112,15 +402,17 @@
 
 .map-book-row-chevron {
   color: #2C2419;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   flex-shrink: 0;
   line-height: 1;
-  opacity: 0.6;
+  opacity: 0.45;
+  transition: opacity 0.15s, transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .map-book-row:hover .map-book-row-chevron {
   opacity: 1;
+  transform: translateX(3px);
 }
 
 .map-no-books {
@@ -132,7 +424,9 @@
   margin: 0;
 }
 
-/* ── Zoom Controls ── */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ZOOM CONTROLS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 .map-controls {
   position: absolute;
   top: 24px;
@@ -140,6 +434,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  z-index: 20;
 }
 
 .map-zoom-btn {
@@ -149,16 +444,25 @@
   align-items: center;
   justify-content: center;
   background-color: var(--canvas);
-  border: 1px solid rgba(var(--line-rgb, 180 160 130), 0.6);
+  border: 1px solid rgba(180, 160, 130, 0.55);
   border-radius: 12px;
   color: var(--ink);
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition:
+    background-color 0.2s,
+    transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.2s;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
 .map-zoom-btn:hover {
   background-color: var(--surface-2);
+  transform: scale(1.1);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.13);
+}
+
+.map-zoom-btn:active {
+  transform: scale(0.93);
 }
 
 .map-zoom-minus-bar {
@@ -168,7 +472,9 @@
   border-radius: 9999px;
 }
 
-/* ── Zoom level badge ── */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ZOOM BADGE (bottom-right)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 .map-zoom-badge {
   position: absolute;
   bottom: 16px;
@@ -185,4 +491,13 @@
   pointer-events: none;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
   transition: opacity 0.3s;
+  z-index: 20;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SVG BASE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.map-svg {
+  width: 100%;
+  height: 100%;
 }

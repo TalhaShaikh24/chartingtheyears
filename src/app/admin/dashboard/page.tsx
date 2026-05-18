@@ -41,7 +41,7 @@ function StatTile({
   return (
     <Card className="relative">
       <div className="flex items-start justify-between">
-        <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-ink text-canvas">
+        <span className="inline-flex h-12 w-12 items-center justify-center rounded-sm bg-ink text-canvas">
           <Icon name={icon} size={22} />
         </span>
         <span className="rounded-full bg-ink text-canvas text-xs px-3 py-1">{pill}</span>

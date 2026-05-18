@@ -91,7 +91,9 @@ function ReadingListContent() {
         </div>
       ) : filteredBooks.length === 0 ? (
         <div className="rl-empty">
-          <div className="rl-empty-icon" aria-hidden="true">☆</div>
+          <div className="rl-empty-icon" aria-hidden="true">
+            <img src="/icon-svgs/books.svg" alt="" width="48" height="48" />
+          </div>
           <h2 className="rl-empty-title">Your reading list is empty</h2>
           <p className="rl-empty-subtitle">
             {books.length === 0

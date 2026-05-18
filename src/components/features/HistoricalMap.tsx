@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   ComposableMap,
   Geographies,
@@ -10,6 +10,7 @@ import {
 } from 'react-simple-maps';
 import { Icon } from '@/components/ui/kit/Icon';
 import { getCountryCode, getCountryName } from '@/lib/countries';
+import { isCountryVisibleInEra } from '@/lib/historicalExistence';
 import { useSettings } from '@/contexts/SettingsContext';
 import './HistoricalMap.css';
 
@@ -125,8 +126,9 @@ const COUNTRY_LABELS: Array<{ name: string; lon: number; lat: number; minZoom: n
 interface HistoricalMapProps {
   highlightedCountries: string[];
   selectedCountryName: string | null;
-  activeEra: string;
+  activeEra: string | null;
   booksInSelection: { title: string }[];
+  bookCountByCountry?: Record<string, number>;
   onCountryClick?: (countryName: string) => void;
 }
 
@@ -135,10 +137,54 @@ export function HistoricalMap({
   selectedCountryName,
   activeEra,
   booksInSelection,
+  bookCountByCountry,
   onCountryClick,
 }: HistoricalMapProps) {
   const [position, setPosition] = useState({ coordinates: [0, 20] as [number, number], zoom: 1.2 });
   const { settings } = useSettings();
+
+  // ── Era transition animation state ──
+  const prevEraRef = useRef(activeEra);
+  const [isEraTransitioning, setIsEraTransitioning] = useState(false);
+  const [eraAnimKey, setEraAnimKey] = useState(0);
+
+  useEffect(() => {
+    if (prevEraRef.current !== activeEra) {
+      prevEraRef.current = activeEra;
+      setIsEraTransitioning(true);
+      setEraAnimKey((k) => k + 1);
+      const t = setTimeout(() => setIsEraTransitioning(false), 900);
+      return () => clearTimeout(t);
+    }
+  }, [activeEra]);
+
+  // ── Idle state: null era = no era selected ──
+  const isIdleState = !activeEra || activeEra === 'All';
+  const hasHighlights = !isIdleState && highlightedCountries.length > 0;
+
+  // ── Book-count intensity helpers ──
+  function getIntensity(code: string): 'low' | 'medium' | 'high' {
+    const count = bookCountByCountry?.[code] ?? 0;
+    if (count <= 1) return 'low';
+    if (count <= 3) return 'medium';
+    return 'high';
+  }
+
+  function getHighlightFill(intensity: 'low' | 'medium' | 'high'): string {
+    switch (intensity) {
+      case 'low':    return 'oklch(0.87 0.06 72)';
+      case 'medium': return 'oklch(0.78 0.09 70)';
+      case 'high':   return 'oklch(0.63 0.14 68)';
+    }
+  }
+
+  function getGlowFilter(intensity: 'low' | 'medium' | 'high'): string {
+    switch (intensity) {
+      case 'low':    return 'drop-shadow(0 0 3px oklch(0.87 0.06 72 / 0.7))';
+      case 'medium': return 'drop-shadow(0 0 5px oklch(0.78 0.09 70 / 0.8))';
+      case 'high':   return 'drop-shadow(0 0 8px oklch(0.63 0.14 68 / 0.9)) drop-shadow(0 0 3px oklch(0.63 0.14 68 / 0.5))';
+    }
+  }
 
   // Resolve active palette from settings
   const palette = MAP_STYLES[settings.mapStyle] ?? DEFAULT_STYLE;
@@ -165,8 +211,40 @@ export function HistoricalMap({
   const labelFontSize = baseFontSize / zoom;
 
   return (
-    <div className="map-wrapper" style={{ backgroundColor: palette.ocean }}>
+    <div
+      className={`map-wrapper${isEraTransitioning ? ' era-transitioning' : ''}${hasHighlights ? ' era-active' : ''}`}
+      style={{ backgroundColor: palette.ocean }}
+    >
       <div className="map-dot-pattern" />
+
+      {/* Era transition cinematic flash overlay */}
+      {isEraTransitioning && <div className="map-era-flash" />}
+
+      {/* Idle state overlay — shown when no era is selected */}
+      {!activeEra && (
+        <div className="map-idle-overlay">
+          <div className="map-idle-inner">
+            <div className="map-idle-globe">🌍</div>
+            <p className="map-idle-title">Explore the Atlas</p>
+            <p className="map-idle-hint">Select an era to reveal historical countries and books</p>
+            <div className="map-idle-eras">
+              <span className="map-idle-era-chip">Ancient</span>
+              <span className="map-idle-era-chip">1900–1920</span>
+              <span className="map-idle-era-chip">1940</span>
+              <span className="map-idle-era-chip">1980</span>
+              <span className="map-idle-era-chip">2026</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Era active badge */}
+      {hasHighlights && (
+        <div className="map-era-badge" key={eraAnimKey}>
+          <span className="map-era-badge-dot" />
+          {activeEra}
+        </div>
+      )}
 
       <ComposableMap
         projectionConfig={{ rotate: [-10, 0, 0], scale: 200 }}
@@ -185,42 +263,107 @@ export function HistoricalMap({
                 const countryCode = getCountryCode(name);
                 const isSelected = selectedCountryName === countryCode;
                 const isHighlighted = highlightedCountries.includes(countryCode);
+                const intensity = isHighlighted ? getIntensity(countryCode) : 'low';
+
+                // ── Historical existence check ──
+                const historicallyExists =
+                  !activeEra ||
+                  activeEra === 'All' ||
+                  isCountryVisibleInEra(countryCode, activeEra);
+
+                // Non-existent countries: invisible but still rendered for smooth fade
+                const existenceOpacity = historicallyExists ? 1 : 0;
+
+                // ── Fill colour ──
+                const fillColor = isSelected
+                  ? 'var(--ink)'
+                  : isHighlighted && !isIdleState
+                    ? getHighlightFill(intensity)
+                    : palette.countryFill;
+
+                // ── Stroke ──
+                const strokeColor = isSelected
+                  ? 'var(--ink)'
+                  : isHighlighted && !isIdleState
+                    ? getHighlightFill(intensity)
+                    : palette.countryStroke;
+
+                // ── Opacity: mute non-highlighted when era is active ──
+                const baseOpacity = isSelected
+                  ? 1
+                  : isHighlighted && !isIdleState
+                    ? 1
+                    : hasHighlights
+                      ? 0.28
+                      : 1;
+                const opacityVal = historicallyExists ? baseOpacity : 0;
+
+                // ── CSS drop-shadow glow (GPU composited) ──
+                const glowFilter = isSelected
+                  ? 'drop-shadow(0 0 6px var(--ink))'
+                  : isHighlighted && !isIdleState
+                    ? getGlowFilter(intensity)
+                    : 'none';
+
+                // ── Staggered entry delay for highlighted countries ──
+                const highlightIdx = isHighlighted
+                  ? highlightedCountries.indexOf(countryCode)
+                  : -1;
+                const entryDelay = highlightIdx >= 0
+                  ? `${Math.min(highlightIdx * 40, 400)}ms`
+                  : '0ms';
 
                 return (
                   <Geography
                     key={geo.rsmKey}
                     geography={geo}
                     onClick={() => onCountryClick?.(countryCode)}
+                    className={
+                      [
+                        'map-geo',
+                        isSelected ? 'map-geo--selected' : '',
+                        isHighlighted && !isIdleState ? `map-geo--highlighted map-geo--${intensity}` : '',
+                        !isHighlighted && hasHighlights ? 'map-geo--muted' : '',
+                      ]
+                        .filter(Boolean)
+                        .join(' ')
+                    }
                     style={{
                       default: {
-                        fill: isSelected
-                          ? 'var(--ink)'
-                          : isHighlighted
-                            ? 'var(--accent)'
-                            : palette.countryFill,
-                        stroke: isSelected
-                          ? 'var(--ink)'
-                          : isHighlighted
-                            ? 'var(--accent)'
-                            : palette.countryStroke,
-                        strokeWidth: 0.5,
+                        fill: fillColor,
+                        stroke: strokeColor,
+                        strokeWidth: isHighlighted && !isIdleState ? 0.7 : 0.5,
                         outline: 'none',
-                        transition: 'fill 300ms, stroke 300ms, opacity 300ms',
-                        opacity: isSelected ? 0.9 : isHighlighted ? 0.7 : 1,
+                        transition:
+                          'fill 550ms cubic-bezier(0.4,0,0.2,1), stroke 550ms cubic-bezier(0.4,0,0.2,1), opacity 700ms cubic-bezier(0.4,0,0.2,1), filter 550ms cubic-bezier(0.4,0,0.2,1)',
+                        opacity: opacityVal,
+                        filter: glowFilter,
+                        willChange: 'fill, opacity, filter',
+                        animationDelay: entryDelay,
+                        pointerEvents: historicallyExists ? 'auto' : 'none',
                       },
                       hover: {
-                        fill: 'var(--accent)',
-                        stroke: 'var(--accent)',
-                        strokeWidth: 0.5,
+                        fill: isHighlighted && !isIdleState
+                          ? getHighlightFill('high')
+                          : isSelected
+                            ? 'var(--ink)'
+                            : 'var(--accent-soft)',
+                        stroke: isHighlighted && !isIdleState ? getHighlightFill('high') : palette.countryStroke,
+                        strokeWidth: 0.8,
                         outline: 'none',
                         cursor: 'pointer',
-                        opacity: 0.8,
+                        opacity: isHighlighted && !isIdleState ? 1 : hasHighlights ? 0.55 : 0.85,
+                        filter: isHighlighted && !isIdleState
+                          ? 'drop-shadow(0 0 8px oklch(0.63 0.14 68 / 0.95))'
+                          : 'none',
                       },
                       pressed: {
                         fill: 'var(--ink)',
                         stroke: 'var(--ink)',
                         strokeWidth: 0.5,
                         outline: 'none',
+                        opacity: 1,
+                        filter: 'none',
                       },
                     }}
                   />
@@ -235,8 +378,16 @@ export function HistoricalMap({
             const isHighlighted = highlightedCountries.includes(code);
             const isSelected = selectedCountryName === code;
 
-            // Opacity fades in smoothly as zoom crosses the threshold
-            const fadeOpacity = Math.min((zoom - lbl.minZoom + 0.3) / 0.3, 1);
+            // Historical existence — same logic as the shape
+            const labelHistoricallyExists =
+              !activeEra ||
+              activeEra === 'All' ||
+              isCountryVisibleInEra(code, activeEra);
+
+            // Opacity fades in smoothly as zoom crosses the threshold,
+            // AND fades to 0 when the country didn't exist in this era.
+            const zoomFade = Math.min((zoom - lbl.minZoom + 0.3) / 0.3, 1);
+            const fadeOpacity = labelHistoricallyExists ? zoomFade : 0;
 
             return (
               <Annotation
@@ -259,7 +410,8 @@ export function HistoricalMap({
                         ? 'oklch(0.18 0.015 60)'
                         : palette.labelFill,
                     opacity: fadeOpacity,
-                    pointerEvents: 'none',
+                    transition: 'opacity 700ms cubic-bezier(0.4,0,0.2,1)',
+                    pointerEvents: labelHistoricallyExists ? 'none' : 'none',
                     userSelect: 'none',
                     letterSpacing: '0.01em',
                     textShadow: '0 0 4px var(--surface-2)',
@@ -275,15 +427,25 @@ export function HistoricalMap({
 
       {/* ── Country Selection Overlay ── */}
       {selectedCountryName && (
-        <div className="map-selection-overlay">
+        <div className="map-selection-overlay" key={selectedCountryName}>
           <div>
             <h2 className="map-overlay-country">{getCountryName(selectedCountryName)}</h2>
             <p className="map-overlay-era">Coverage: {activeEra}</p>
+            {bookCountByCountry?.[selectedCountryName] && (
+              <div className="map-overlay-count">
+                <span className="map-overlay-count-dot" />
+                {bookCountByCountry[selectedCountryName]} book{bookCountByCountry[selectedCountryName] !== 1 ? 's' : ''}
+              </div>
+            )}
           </div>
 
           <div className="map-book-list">
             {booksInSelection.slice(0, 4).map((book, idx) => (
-              <button key={idx} className="map-book-row">
+              <button
+                key={idx}
+                className="map-book-row"
+                style={{ animationDelay: `${idx * 60 + 120}ms` }}
+              >
                 <span className="map-book-row-title">{book.title}</span>
                 <span className="map-book-row-chevron">›</span>
               </button>

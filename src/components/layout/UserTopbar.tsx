@@ -10,9 +10,9 @@ import { LanguageSwitcher } from './LanguageSwitcher';
 import './UserTopbar.css';
 
 const navItems = [
-  { label: 'Atlas Dashboard', href: '/user' },
-  { label: 'Reading list', href: '/user/reading-list' },
-  { label: 'About', href: '/user/about' },
+  { label: 'Atlas Dashboard', href: '/user', icon: '/icon-svgs/dashboard.svg' },
+  { label: 'Reading list', href: '/user/reading-list', icon: '/icon-svgs/books.svg' },
+  { label: 'About', href: '/user/about', icon: '' },
 ];
 
 export function UserTopbar() {
@@ -27,7 +27,7 @@ export function UserTopbar() {
       {isAboutPage && (
         <Link href="/user" className="user-topbar-logo-link">
           <span className="user-topbar-logo-icon">
-            <Icon name="logo" size={26} />
+            <img src="/icon-svgs/logo-icon.svg" alt="" width="26" height="26" />
           </span>
           <span className="user-topbar-logo-name">{settings.siteName}</span>
         </Link>
@@ -42,17 +42,7 @@ export function UserTopbar() {
               onClick={() => setMobileFiltersOpen(true)}
               aria-label="Open Filters"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="4" y1="21" x2="4" y2="14" />
-                <line x1="4" y1="10" x2="4" y2="3" />
-                <line x1="12" y1="21" x2="12" y2="12" />
-                <line x1="12" y1="8" x2="12" y2="3" />
-                <line x1="20" y1="21" x2="20" y2="16" />
-                <line x1="20" y1="12" x2="20" y2="3" />
-                <line x1="1" y1="14" x2="7" y2="14" />
-                <line x1="9" y1="8" x2="15" y2="8" />
-                <line x1="17" y1="16" x2="23" y2="16" />
-              </svg>
+              <img src="/icon-svgs/filters-userside.svg" alt="" width="20" height="20" aria-hidden="true" />
               Filters
             </button>
           )}
@@ -63,7 +53,9 @@ export function UserTopbar() {
                 key={item.href}
                 href={item.href}
                 className={`user-topbar-nav-link${active ? ' active' : ''}`}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
               >
+                {item.icon && <img src={item.icon} alt="" width="16" height="16" style={{ opacity: active ? 1 : 0.6 }} />}
                 {item.label}
               </Link>
             );

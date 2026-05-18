@@ -14,6 +14,7 @@
     opacity: 0;
     transform: translateY(16px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -81,7 +82,7 @@
   background-color: var(--surface-2);
   border-radius: 9999px;
   border: 1px solid rgba(var(--line-rgb, 180 160 130), 0.4);
-  
+
   flex-wrap: nowrap;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -117,12 +118,76 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
+/* ── Section Idle State (no era selected) ── */
+.section-idle-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 80px 24px;
+  text-align: center;
+  background: linear-gradient(160deg,
+      var(--surface-2) 0%,
+      var(--surface) 100%);
+  border-radius: 24px;
+  border: 1px dashed oklch(0.78 0.09 70 / 0.35);
+  animation: sectionIdleIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes sectionIdleIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.section-idle-icon {
+  font-size: 40px;
+  line-height: 1;
+  animation: idleIconFloat 3s ease-in-out infinite;
+  filter: drop-shadow(0 4px 12px oklch(0.78 0.09 70 / 0.3));
+}
+
+@keyframes idleIconFloat {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.section-idle-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.section-idle-sub {
+  font-size: 14px;
+  color: var(--ink-mute);
+  margin: 0;
+  max-width: 380px;
+  line-height: 1.6;
+}
+
 /* ── Category Filters ── */
 .category-section {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 40px;
+  align-items: flex-start;
+  gap: 30px;
 }
 
 .category-filters {
@@ -201,8 +266,15 @@
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
 }
 
 /* ── Empty State ── */
@@ -232,6 +304,40 @@
 .books-empty-clear:hover {
   text-decoration: underline;
 }
+
+.books-empty-idle {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink-mute);
+  margin: 0;
+  line-height: 1.6;
+  position: relative;
+  display: inline-block;
+}
+
+.books-empty-idle::after {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 9999px;
+  margin: 12px auto 0;
+  animation: idleLineGrow 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+}
+
+@keyframes idleLineGrow {
+  from {
+    width: 0;
+    opacity: 0;
+  }
+
+  to {
+    width: 40px;
+    opacity: 1;
+  }
+}
+
 
 /* ── User Layout ── */
 .user-layout {
@@ -312,7 +418,7 @@
   transition: opacity 0.15s;
 }
 
-.kit-checkbox-input:checked ~ .kit-checkbox-checkmark {
+.kit-checkbox-input:checked~.kit-checkbox-checkmark {
   opacity: 1;
 }
 
@@ -369,5 +475,5 @@
   border-radius: 50%;
   background-color: var(--accent);
   cursor: pointer;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }

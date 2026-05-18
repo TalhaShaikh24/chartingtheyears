@@ -46,7 +46,7 @@ function SidebarContent({ isMobileOpen, onClose }: { isMobileOpen?: boolean; onC
         <div className="sidebar-logo">
           <Link href="/user" className="sidebar-logo-link" onClick={onClose}>
             <span className="sidebar-logo-icon">
-              <Icon name="logo" size={26} />
+              <img src="/icon-svgs/logo-icon.svg" alt="" width="26" height="26" />
             </span>
             <span className="sidebar-logo-name">{settings.siteName}</span>
           </Link>
@@ -59,17 +59,7 @@ function SidebarContent({ isMobileOpen, onClose }: { isMobileOpen?: boolean; onC
 
         <nav className="sidebar-nav">
           <div className="filters-header">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <line x1="4" y1="21" x2="4" y2="14" />
-              <line x1="4" y1="10" x2="4" y2="3" />
-              <line x1="12" y1="21" x2="12" y2="12" />
-              <line x1="12" y1="8" x2="12" y2="3" />
-              <line x1="20" y1="21" x2="20" y2="16" />
-              <line x1="20" y1="12" x2="20" y2="3" />
-              <line x1="1" y1="14" x2="7" y2="14" />
-              <line x1="9" y1="8" x2="15" y2="8" />
-              <line x1="17" y1="16" x2="23" y2="16" />
-            </svg>
+            <img src="/icon-svgs/filters-userside.svg" alt="" width="24" height="24" aria-hidden="true" />
             <h2>Filters</h2>
           </div>
 
@@ -184,7 +174,7 @@ function SidebarContent({ isMobileOpen, onClose }: { isMobileOpen?: boolean; onC
               <h3 className="filter-group-title">Tags</h3>
               <div className="tag-search-wrap">
                 <span className="tag-search-icon">
-                  <Icon name="search" size={14} />
+                  <img src="/icon-svgs/tags.svg" alt="" width="14" height="14" />
                 </span>
                 <input
                   type="text"

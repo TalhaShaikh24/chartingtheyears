@@ -40,8 +40,8 @@ const categories = [
 function HomeContent() {
   const { settings } = useSettings();
 
-  // Initialise era from settings; update when settings load (once)
-  const [activeEra, setActiveEra] = useState<string>('All');
+  // null = no era selected (initial idle state)
+  const [activeEra, setActiveEra] = useState<string | null>(null);
   const [eraInitialised, setEraInitialised] = useState(false);
   useEffect(() => {
     if (!eraInitialised && settings.defaultEra) {
@@ -76,7 +76,8 @@ function HomeContent() {
     fetchBooks();
   }, []);
 
-  const filteredBooks = books.filter((book) => {
+  // No era selected → show nothing until the user picks one
+  const filteredBooks = activeEra === null ? [] : books.filter((book) => {
     if (activeCategory !== 'All' && book.category !== activeCategory) return false;
     if (selectedCountry && book.country !== selectedCountry) return false;
 
@@ -108,6 +109,12 @@ function HomeContent() {
 
   const highlightedCountries = Array.from(new Set(filteredBooks.map((b) => b.country)));
 
+  // Book count per country — drives glow intensity in the map
+  const bookCountByCountry: Record<string, number> = {};
+  for (const book of filteredBooks) {
+    bookCountByCountry[book.country] = (bookCountByCountry[book.country] ?? 0) + 1;
+  }
+
   const handleAddToReadingList = useCallback((book: Book) => {
     toggleBook(book._id);
   }, [toggleBook]);
@@ -119,7 +126,7 @@ function HomeContent() {
         <div className="user-page-heading-group">
           <p className="user-page-eyebrow">Atlas Interaction</p>
           <h1 className="user-page-title">
-            Countries <span className="user-page-title-sep">•</span> {activeEra}
+            Countries {activeEra && <><span className="user-page-title-sep">•</span> {activeEra}</>}
           </h1>
           <p className="user-page-subtitle">
             Explore literature through time and geography. Select an era or click a country on the map.
@@ -145,59 +152,70 @@ function HomeContent() {
         selectedCountryName={selectedCountry}
         activeEra={activeEra}
         booksInSelection={filteredBooks.filter((b) => b.country === selectedCountry)}
+        bookCountByCountry={bookCountByCountry}
         onCountryClick={(name) => setSelectedCountry(selectedCountry === name ? null : name)}
       />
 
       {/* Categories + Books */}
-      <div className="category-section">
-        <div className="category-filters">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`cat-btn${activeCategory === cat ? ' cat-btn--active' : ''}`}
-            >
-              {cat}
-            </button>
-          ))}
+      {activeEra === null ? (
+        <div className="section-idle-state">
+          <div className="section-idle-icon">
+            <img src="/icon-svgs/books.svg" alt="" width="48" height="48" />
+          </div>
+          <p className="section-idle-title">Select an era to get started</p>
+          <p className="section-idle-sub">Choose a time period above — the map and book collection will come to life.</p>
         </div>
-
-        <div className="books-grid-wrap">
-          {loading ? (
-            <div className="skeleton-grid">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="book-skeleton" />
-              ))}
-            </div>
-          ) : pagedBooks.length > 0 ? (
-            <div className="books-grid">
-              {pagedBooks.map((book) => (
-                <BookCard
-                  key={book._id}
-                  _id={book._id}
-                  title={book.title}
-                  author={book.author}
-                  category={book.category}
-                  language={book.language}
-                  rating={book.rating}
-                  imageUrl={book.imageUrl}
-                  onClick={() => setPopupBook(book)}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="books-empty">
-              <p>No books found for this selection.</p>
+      ) : (
+        <div className="category-section">
+          <div className="category-filters">
+            {categories.map((cat) => (
               <button
-                className="books-empty-clear"
-                onClick={() => { setSelectedCountry(null); setActiveCategory('All'); }}
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`cat-btn${activeCategory === cat ? ' cat-btn--active' : ''}`}
               >
-                Clear all filters
+                {cat}
               </button>
-            </div>
-          )}
+            ))}
+          </div>
+
+          <div className="books-grid-wrap">
+            {loading ? (
+              <div className="skeleton-grid">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="book-skeleton" />
+                ))}
+              </div>
+            ) : pagedBooks.length > 0 ? (
+              <div className="books-grid">
+                {pagedBooks.map((book) => (
+                  <BookCard
+                    key={book._id}
+                    _id={book._id}
+                    title={book.title}
+                    author={book.author}
+                    category={book.category}
+                    language={book.language}
+                    rating={book.rating}
+                    imageUrl={book.imageUrl}
+                    onClick={() => setPopupBook(book)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="books-empty">
+                <p>No books found for this selection.</p>
+                <button
+                  className="books-empty-clear"
+                  onClick={() => { setSelectedCountry(null); setActiveCategory('All'); }}
+                >
+                  Clear all filters
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Book Popup Modal */}
       <BookPopupModal

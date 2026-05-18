@@ -5,21 +5,21 @@ import { usePathname } from 'next/navigation';
 import { Icon, type IconName } from '@/components/ui/kit/Icon';
 import { cn } from '@/lib/utils';
 
-type Item = { label: string; href: string; icon: IconName };
+type Item = { label: string; href: string; icon: string };
 
 const overview: Item[] = [
-  { label: 'Dashboard', href: '/admin/dashboard', icon: 'dashboard' },
+  { label: 'Dashboard', href: '/admin/dashboard', icon: '/icon-svgs/dashboard.svg' },
 ];
 
 const content: Item[] = [
-  { label: 'Books', href: '/admin/books', icon: 'books' },
-  { label: 'Add Book', href: '/admin/books/add', icon: 'plus' },
-  { label: 'Categories', href: '/admin/categories', icon: 'grid' },
-  { label: 'Tags', href: '/admin/tags', icon: 'tag' },
+  { label: 'Books', href: '/admin/books', icon: '/icon-svgs/books.svg' },
+  { label: 'Add Book', href: '/admin/books/add', icon: '/icon-svgs/add-book.svg' },
+  { label: 'Categories', href: '/admin/categories', icon: '/icon-svgs/categories.svg' },
+  { label: 'Tags', href: '/admin/tags', icon: '/icon-svgs/tags.svg' },
 ];
 
 const settings: Item[] = [
-  { label: 'Settings', href: '/admin/settings', icon: 'settings' },
+  { label: 'Settings', href: '/admin/settings', icon: '/icon-svgs/settings.svg' },
 ];
 
 function Section({ title, items, current }: { title: string; items: Item[]; current: string }) {
@@ -48,7 +48,7 @@ function Section({ title, items, current }: { title: string; items: Item[]; curr
                     active ? 'text-accent' : 'text-ink',
                   )}
                 >
-                  <Icon name={it.icon} size={22} />
+                  <img src={it.icon} alt="" width="22" height="22" className={active ? '' : 'opacity-80'} />
                 </span>
                 <span>{it.label}</span>
               </Link>
@@ -67,8 +67,8 @@ export function Sidebar() {
     <aside className="hidden lg:flex w-72 shrink-0 flex-col bg-surface border-r border-line/60 min-h-screen">
       <div className="px-6 py-7 border-b border-line/50">
         <Link href="/admin/dashboard" className="flex items-center gap-3">
-          <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-coffee-2 text-canvas">
-            <Icon name="logo" size={26} />
+          <span className="inline-flex h-12 w-12 items-center justify-center rounded-sm bg-coffee-2 text-canvas">
+            <img src="/icon-svgs/logo-icon.svg" alt="" width="26" height="26" />
           </span>
           <span>
             <span className="block text-lg font-bold leading-tight text-ink">

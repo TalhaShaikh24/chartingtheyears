@@ -187,7 +187,9 @@ export default function BookDetailPage() {
   return (
     <div className="bd-page">
       {/* Back link */}
-      <Link href="/user" className="bd-back-btn">← Back to Dashboard</Link>
+      <Link href="/user" className="bd-back-btn">
+        <img src="/icon-svgs/dashboard.svg" alt="" width="16" height="16" /> Back to Dashboard
+      </Link>
 
       {/* Book Hero */}
       <div className="bd-hero">
@@ -242,7 +244,9 @@ export default function BookDetailPage() {
         className={`bd-rl-btn${isInList(book._id) ? ' bd-rl-btn--added' : ''}`}
         onClick={handleReadingListToggle}
       >
-        {isInList(book._id) ? '✓ Saved to reading list' : '☆ Add to reading list'}
+        {isInList(book._id) ? '✓ Saved to reading list' : (
+          <><img src="/icon-svgs/add-book.svg" alt="" width="16" height="16" /> Add to reading list</>
+        )}
       </button>
 
       {/* Related books */}
@@ -277,11 +281,11 @@ export default function BookDetailPage() {
 
       {/* Reviews section */}
       <section className="bd-reviews">
-        <h2 className="bd-reviews-title">Reviews</h2>
+        <h2 className="bd-reviews-title">Comments & Feedback</h2>
 
         {/* Submit form */}
         <form onSubmit={handleReviewSubmit} className="bd-review-form" noValidate>
-          <h3 className="bd-review-form-heading">Write a Review</h3>
+          <h3 className="bd-review-form-heading">Leave Feedback</h3>
 
           <div className="bd-review-form-row">
             <div className="bd-review-form-field">
@@ -304,7 +308,7 @@ export default function BookDetailPage() {
           </div>
 
           <div className="bd-review-form-field">
-            <label className="bd-review-label" htmlFor="review-text">Review</label>
+            <label className="bd-review-label" htmlFor="review-text">Comment</label>
             <textarea
               id="review-text"
               className="bd-review-textarea"
@@ -321,17 +325,17 @@ export default function BookDetailPage() {
             <p className="bd-review-error" role="alert">{submitError}</p>
           )}
           {submitSuccess && (
-            <p className="bd-review-success" role="status">Review submitted! Thank you.</p>
+            <p className="bd-review-success" role="status">Feedback submitted! Thank you.</p>
           )}
 
           <button type="submit" className="bd-review-submit" disabled={submitting}>
-            {submitting ? 'Submitting…' : 'Submit Review'}
+            {submitting ? 'Submitting…' : 'Submit'}
           </button>
         </form>
 
         {/* Review list */}
         {reviewsLoading ? (
-          <div className="bd-reviews-loading">Loading reviews…</div>
+          <div className="bd-reviews-loading">Loading feedback((s))…</div>
         ) : reviews.length === 0 ? (
           <p className="bd-reviews-empty">No reviews yet. Be the first to write one!</p>
         ) : (
