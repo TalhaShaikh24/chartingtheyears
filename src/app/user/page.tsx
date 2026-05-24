@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useState, useEffect, useCallback, Suspense, useRef } from 'react';
 import { HistoricalMap } from '@/components/features/HistoricalMap';
 import { BookCard } from '@/components/features/BookCard';
 import { BookPopupModal } from '@/components/features/BookPopupModal';
@@ -56,6 +56,9 @@ function HomeContent() {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [popupBook, setPopupBook] = useState<Book | null>(null);
 
+  const [visibleCount, setVisibleCount] = useState(20);
+  const observerTarget = useRef<HTMLDivElement | null>(null);
+
   const { filters } = useFilter();
 
   // Unified reading list — works for guests (localStorage) and logged-in users (DB)
@@ -65,7 +68,7 @@ function HomeContent() {
     const fetchBooks = async () => {
       try {
         setLoading(true);
-        const response = await apiClient.get<{ data: Book[] }>('/api/books');
+        const response = await apiClient.get<{ data: Book[] }>('/api/books?limit=1000&status=published');
         setBooks(response.data.data);
       } catch (err) {
         console.error('Failed to fetch books', err);
@@ -75,6 +78,11 @@ function HomeContent() {
     };
     fetchBooks();
   }, []);
+
+  // Reset visible count when settings or filters change
+  useEffect(() => {
+    setVisibleCount(settings.booksPerPage || 20);
+  }, [activeEra, activeCategory, selectedCountry, filters, settings.booksPerPage]);
 
   // No era selected → show nothing until the user picks one
   const filteredBooks = activeEra === null ? [] : books.filter((book) => {
@@ -103,9 +111,27 @@ function HomeContent() {
     return true;
   });
 
-  // Respect booksPerPage setting from admin
-  const booksPerPage = settings.booksPerPage || 20;
-  const pagedBooks = filteredBooks.slice(0, booksPerPage);
+  // Infinite scroll intersection observer
+  useEffect(() => {
+    const target = observerTarget.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((prev) => Math.min(prev + (settings.booksPerPage || 20), filteredBooks.length));
+        }
+      },
+      { threshold: 0.1, rootMargin: '100px' }
+    );
+
+    observer.observe(target);
+    return () => {
+      if (target) observer.unobserve(target);
+    };
+  }, [filteredBooks.length, visibleCount, settings.booksPerPage]);
+
+  const pagedBooks = filteredBooks.slice(0, visibleCount);
 
   const highlightedCountries = Array.from(new Set(filteredBooks.map((b) => b.country)));
 
@@ -187,21 +213,29 @@ function HomeContent() {
                 ))}
               </div>
             ) : pagedBooks.length > 0 ? (
-              <div className="books-grid">
-                {pagedBooks.map((book) => (
-                  <BookCard
-                    key={book._id}
-                    _id={book._id}
-                    title={book.title}
-                    author={book.author}
-                    category={book.category}
-                    language={book.language}
-                    rating={book.rating}
-                    imageUrl={book.imageUrl}
-                    onClick={() => setPopupBook(book)}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="books-grid">
+                  {pagedBooks.map((book) => (
+                    <BookCard
+                      key={book._id}
+                      _id={book._id}
+                      title={book.title}
+                      author={book.author}
+                      category={book.category}
+                      language={book.language}
+                      rating={book.rating}
+                      imageUrl={book.imageUrl}
+                      onClick={() => setPopupBook(book)}
+                    />
+                  ))}
+                </div>
+                {visibleCount < filteredBooks.length && (
+                  <div ref={observerTarget} className="load-more-trigger">
+                    <div className="spinner" />
+                    <span>Loading more books...</span>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="books-empty">
                 <p>No books found for this selection.</p>

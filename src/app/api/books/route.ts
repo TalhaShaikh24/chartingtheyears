@@ -13,8 +13,19 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
     const skip = parseInt(searchParams.get('skip') || '0');
     const status = searchParams.get('status');
+    const q = searchParams.get('q');
 
-    const filter = status ? { status } : {};
+    const filter: any = {};
+    if (status) {
+      filter.status = status;
+    }
+    if (q) {
+      filter.$or = [
+        { title: { $regex: q, $options: 'i' } },
+        { author: { $regex: q, $options: 'i' } },
+        { category: { $regex: q, $options: 'i' } },
+      ];
+    }
 
     const books = await Book.find(filter)
       .sort({ createdAt: -1 })
