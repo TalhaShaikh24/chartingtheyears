@@ -52,94 +52,124 @@ function HomeContent() {
 
   const [activeCategory, setActiveCategory] = useState('All');
   const [books, setBooks] = useState<Book[]>([]);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadingNext, setLoadingNext] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [popupBook, setPopupBook] = useState<Book | null>(null);
+  const [page, setPage] = useState(1);
+  const [highlightedCountries, setHighlightedCountries] = useState<string[]>([]);
+  const [bookCountByCountry, setBookCountByCountry] = useState<Record<string, number>>({});
 
-  const [visibleCount, setVisibleCount] = useState(20);
-  const observerTarget = useRef<HTMLDivElement | null>(null);
+  const observer = useRef<IntersectionObserver | null>(null);
 
   const { filters } = useFilter();
 
   // Unified reading list — works for guests (localStorage) and logged-in users (DB)
   const { isInList, toggleBook } = useReadingList();
 
+  const getQueryParams = useCallback((currentPage: number) => {
+    const params = new URLSearchParams();
+    params.set('status', 'published');
+    
+    const booksPerPage = settings.booksPerPage || 20;
+    params.set('limit', booksPerPage.toString());
+    params.set('skip', ((currentPage - 1) * booksPerPage).toString());
+
+    if (activeEra) params.set('era', activeEra);
+    if (activeCategory && activeCategory !== 'All') params.set('category', activeCategory);
+    if (selectedCountry) params.set('country', selectedCountry);
+
+    // Sidebar filters
+    if (filters.lang.length > 0) params.set('lang', filters.lang.join(','));
+    if (filters.type.length > 0) params.set('type', filters.type.join(','));
+    
+    if (filters.yearRange) {
+      params.set('yearMin', filters.yearRange[0].toString());
+      params.set('yearMax', filters.yearRange[1].toString());
+    }
+    if (filters.rating > 0) params.set('rating', filters.rating.toString());
+    if (filters.tags) params.set('tags', filters.tags);
+
+    return params.toString();
+  }, [activeEra, activeCategory, selectedCountry, filters, settings.booksPerPage]);
+
+  // Initial load or reset
   useEffect(() => {
-    const fetchBooks = async () => {
+    if (activeEra === null) {
+      setBooks([]);
+      setTotal(0);
+      setHighlightedCountries([]);
+      setBookCountByCountry({});
+      setLoading(false);
+      return;
+    }
+
+    const fetchInitialBooks = async () => {
       try {
         setLoading(true);
-        const response = await apiClient.get<{ data: Book[] }>('/api/books?limit=1000&status=published');
+        const queryStr = getQueryParams(1);
+        const response = await apiClient.get<{
+          data: Book[];
+          total: number;
+          highlightedCountries: string[];
+          bookCountByCountry: Record<string, number>;
+        }>(`/api/books?${queryStr}`);
+        
         setBooks(response.data.data);
+        setTotal(response.data.total);
+        setHighlightedCountries(response.data.highlightedCountries || []);
+        setBookCountByCountry(response.data.bookCountByCountry || {});
+        setPage(1);
       } catch (err) {
         console.error('Failed to fetch books', err);
       } finally {
         setLoading(false);
       }
     };
-    fetchBooks();
-  }, []);
 
-  // Reset visible count when settings or filters change
-  useEffect(() => {
-    setVisibleCount(settings.booksPerPage || 20);
-  }, [activeEra, activeCategory, selectedCountry, filters, settings.booksPerPage]);
+    fetchInitialBooks();
+  }, [activeEra, activeCategory, selectedCountry, filters, settings.booksPerPage, getQueryParams]);
 
-  // No era selected → show nothing until the user picks one
-  const filteredBooks = activeEra === null ? [] : books.filter((book) => {
-    if (activeCategory !== 'All' && book.category !== activeCategory) return false;
-    if (selectedCountry && book.country !== selectedCountry) return false;
+  const fetchNextPage = useCallback(async (nextPage: number) => {
+    try {
+      setLoadingNext(true);
+      const queryStr = getQueryParams(nextPage);
+      const response = await apiClient.get<{ data: Book[] }>(`/api/books?${queryStr}`);
+      setBooks((prev) => [...prev, ...response.data.data]);
+      setPage(nextPage);
+    } catch (err) {
+      console.error('Failed to load next page', err);
+    } finally {
+      setLoadingNext(false);
+    }
+  }, [getQueryParams]);
 
-    if (activeEra === 'Ancient' && book.publicationYear >= 1900) return false;
-    if (activeEra === '1900-1920' && (book.publicationYear < 1900 || book.publicationYear > 1920)) return false;
-    if (activeEra === '1940' && (book.publicationYear <= 1920 || book.publicationYear > 1960)) return false;
-    if (activeEra === '1980' && (book.publicationYear <= 1960 || book.publicationYear > 1990)) return false;
-    if (activeEra === '2000' && (book.publicationYear <= 1990 || book.publicationYear > 2010)) return false;
-    if (activeEra === '2026' && book.publicationYear <= 2010) return false;
-
-    // Sidebar Filters
-    if (filters.lang.length > 0 && !filters.lang.includes(book.language)) return false;
-    if (filters.type.length > 0 && !filters.type.includes(book.type)) return false;
-    if (book.publicationYear < filters.yearRange[0]) return false;
-    if (book.publicationYear > filters.yearRange[1]) return false;
-    if (filters.rating > 0 && book.rating < filters.rating) return false;
-    if (filters.tags) {
-      const tagSearch = filters.tags.toLowerCase();
-      const match = book.tags?.some(t => t.toLowerCase().includes(tagSearch)) || false;
-      if (!match) return false;
+  // Infinite scroll intersection observer callback ref
+  const observerTarget = useCallback((node: HTMLDivElement | null) => {
+    if (observer.current) {
+      observer.current.disconnect();
+      observer.current = null;
     }
 
-    return true;
-  });
+    if (!node) return;
 
-  // Infinite scroll intersection observer
-  useEffect(() => {
-    const target = observerTarget.current;
-    if (!target) return;
-
-    const observer = new IntersectionObserver(
+    observer.current = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting) {
-          setVisibleCount((prev) => Math.min(prev + (settings.booksPerPage || 20), filteredBooks.length));
+        if (entries[0].isIntersecting && !loadingNext) {
+          const booksPerPage = settings.booksPerPage || 20;
+          const maxPages = Math.ceil(total / booksPerPage);
+          const nextPage = page + 1;
+          if (nextPage <= maxPages) {
+            fetchNextPage(nextPage);
+          }
         }
       },
       { threshold: 0.1, rootMargin: '100px' }
     );
 
-    observer.observe(target);
-    return () => {
-      if (target) observer.unobserve(target);
-    };
-  }, [filteredBooks.length, visibleCount, settings.booksPerPage]);
-
-  const pagedBooks = filteredBooks.slice(0, visibleCount);
-
-  const highlightedCountries = Array.from(new Set(filteredBooks.map((b) => b.country)));
-
-  // Book count per country — drives glow intensity in the map
-  const bookCountByCountry: Record<string, number> = {};
-  for (const book of filteredBooks) {
-    bookCountByCountry[book.country] = (bookCountByCountry[book.country] ?? 0) + 1;
-  }
+    observer.current.observe(node);
+  }, [total, page, settings.booksPerPage, loadingNext, fetchNextPage]);
 
   const handleAddToReadingList = useCallback((book: Book) => {
     toggleBook(book._id);
@@ -177,7 +207,7 @@ function HomeContent() {
         highlightedCountries={highlightedCountries}
         selectedCountryName={selectedCountry}
         activeEra={activeEra}
-        booksInSelection={filteredBooks.filter((b) => b.country === selectedCountry)}
+        booksInSelection={selectedCountry ? books.filter((b) => b.country === selectedCountry) : []}
         bookCountByCountry={bookCountByCountry}
         onCountryClick={(name) => setSelectedCountry(selectedCountry === name ? null : name)}
       />
@@ -212,10 +242,10 @@ function HomeContent() {
                   <div key={i} className="book-skeleton" />
                 ))}
               </div>
-            ) : pagedBooks.length > 0 ? (
+            ) : books.length > 0 ? (
               <>
                 <div className="books-grid">
-                  {pagedBooks.map((book) => (
+                  {books.map((book) => (
                     <BookCard
                       key={book._id}
                       _id={book._id}
@@ -229,7 +259,7 @@ function HomeContent() {
                     />
                   ))}
                 </div>
-                {visibleCount < filteredBooks.length && (
+                {books.length < total && (
                   <div ref={observerTarget} className="load-more-trigger">
                     <div className="spinner" />
                     <span>Loading more books...</span>

@@ -15,6 +15,17 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const q = searchParams.get('q');
 
+    // User-side filters
+    const category = searchParams.get('category');
+    const country = searchParams.get('country');
+    const era = searchParams.get('era');
+    const lang = searchParams.get('lang');
+    const type = searchParams.get('type');
+    const yearMin = searchParams.get('yearMin');
+    const yearMax = searchParams.get('yearMax');
+    const rating = searchParams.get('rating');
+    const tags = searchParams.get('tags');
+
     const filter: any = {};
     if (status) {
       filter.status = status;
@@ -26,6 +37,50 @@ export async function GET(request: NextRequest) {
         { category: { $regex: q, $options: 'i' } },
       ];
     }
+    if (category && category !== 'All') {
+      filter.category = category;
+    }
+    if (country) {
+      filter.country = country;
+    }
+    if (era) {
+      if (era === 'Ancient') {
+        filter.publicationYear = { $lt: 1900 };
+      } else if (era === '1900-1920') {
+        filter.publicationYear = { $gte: 1900, $lte: 1920 };
+      } else if (era === '1940') {
+        filter.publicationYear = { $gt: 1920, $lte: 1960 };
+      } else if (era === '1980') {
+        filter.publicationYear = { $gt: 1960, $lte: 1990 };
+      } else if (era === '2000') {
+        filter.publicationYear = { $gt: 1990, $lte: 2010 };
+      } else if (era === '2026') {
+        filter.publicationYear = { $gt: 2010 };
+      }
+    }
+    if (lang) {
+      filter.language = { $in: lang.split(',') };
+    }
+    if (type) {
+      filter.type = { $in: type.split(',') };
+    }
+    if (yearMin || yearMax) {
+      const yearFilter: any = {};
+      if (yearMin) yearFilter.$gte = parseInt(yearMin);
+      if (yearMax) yearFilter.$lte = parseInt(yearMax);
+
+      if (filter.publicationYear) {
+        filter.publicationYear = { ...filter.publicationYear, ...yearFilter };
+      } else {
+        filter.publicationYear = yearFilter;
+      }
+    }
+    if (rating) {
+      filter.rating = { $gte: parseInt(rating) };
+    }
+    if (tags) {
+      filter.tags = { $regex: tags, $options: 'i' };
+    }
 
     const books = await Book.find(filter)
       .sort({ createdAt: -1 })
@@ -35,12 +90,33 @@ export async function GET(request: NextRequest) {
 
     const total = await Book.countDocuments(filter);
 
+    // Compute distinct matching countries and their counts for map highlights
+    const mapStats = await Book.aggregate([
+      { $match: filter },
+      {
+        $group: {
+          _id: '$country',
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const bookCountByCountry = mapStats.reduce((acc: any, curr: any) => {
+      if (curr._id) {
+        acc[curr._id] = curr.count;
+      }
+      return acc;
+    }, {});
+    const highlightedCountries = mapStats.map((m: any) => m._id).filter(Boolean);
+
     return NextResponse.json({
       success: true,
       data: books,
       total,
       limit,
       skip,
+      highlightedCountries,
+      bookCountByCountry,
     });
   } catch (error) {
     console.error('[v0] GET /api/books error:', error);
