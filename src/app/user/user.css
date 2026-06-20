@@ -5,8 +5,14 @@
 .user-page {
   display: flex;
   flex-direction: column;
-  gap: 48px;
+  gap: 28px;
   animation: pageIn 0.7s ease both;
+}
+
+@media (min-width: 768px) {
+  .user-page {
+    gap: 48px;
+  }
 }
 
 @keyframes pageIn {
@@ -52,14 +58,21 @@
 }
 
 .user-page-title {
-  font-size: 36px;
+  font-size: 24px;
   font-weight: 700;
   color: var(--ink);
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   margin: 0;
   letter-spacing: -0.02em;
+}
+
+@media (min-width: 768px) {
+  .user-page-title {
+    font-size: 36px;
+    gap: 16px;
+  }
 }
 
 .user-page-title-sep {
@@ -358,12 +371,18 @@
 .user-layout-content {
   flex: 1;
   overflow-y: auto;
-  padding: 0 40px 40px 40px;
+  padding: 0 16px 32px 16px;
 }
 
-@media (max-width: 1023px) {
+@media (min-width: 640px) {
   .user-layout-content {
     padding: 0 24px 40px 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .user-layout-content {
+    padding: 0 40px 40px 40px;
   }
 }
 

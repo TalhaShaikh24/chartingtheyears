@@ -9,6 +9,7 @@ interface FilterState {
   rating: number;
   tags: string;
   mobileFiltersOpen: boolean;
+  mobileRLOpen: boolean;
 }
 
 interface FilterContextType {
@@ -19,6 +20,7 @@ interface FilterContextType {
   setRating: (rating: number) => void;
   setTags: (tags: string) => void;
   setMobileFiltersOpen: (isOpen: boolean) => void;
+  setMobileRLOpen: (isOpen: boolean) => void;
   resetFilters: () => void;
 }
 
@@ -29,6 +31,7 @@ const defaultState: FilterState = {
   rating: 0,
   tags: '',
   mobileFiltersOpen: false,
+  mobileRLOpen: false,
 };
 
 const FilterContext = createContext<FilterContextType | undefined>(undefined);
@@ -42,6 +45,7 @@ export function FilterProvider({ children }: { children: ReactNode }) {
   const setRating = (rating: number) => setFilters((prev) => ({ ...prev, rating }));
   const setTags = (tags: string) => setFilters((prev) => ({ ...prev, tags }));
   const setMobileFiltersOpen = (mobileFiltersOpen: boolean) => setFilters((prev) => ({ ...prev, mobileFiltersOpen }));
+  const setMobileRLOpen = (mobileRLOpen: boolean) => setFilters((prev) => ({ ...prev, mobileRLOpen }));
 
   const resetFilters = () => setFilters(defaultState);
 
@@ -55,6 +59,7 @@ export function FilterProvider({ children }: { children: ReactNode }) {
         setRating,
         setTags,
         setMobileFiltersOpen,
+        setMobileRLOpen,
         resetFilters,
       }}
     >

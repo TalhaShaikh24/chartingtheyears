@@ -10,17 +10,47 @@
   background-color: var(--surface);
   border-right: 1px solid rgba(var(--line-rgb, 180 160 130), 0.6);
   min-height: 100vh;
+  transition: transform 0.3s ease;
 }
 
 @media (min-width: 1024px) {
   .rl-sidebar {
     display: flex;
+    position: static;
+    transform: none;
   }
+}
+
+/* ── Mobile drawer ── */
+.rl-sidebar--mobile-open {
+  display: flex;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 50;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.2);
+}
+
+.rl-sidebar-mobile-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 40;
+  animation: rl-fade-in 0.3s ease;
+}
+
+@keyframes rl-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 /* ── Logo ── */
 .rl-sidebar-logo {
   padding: 28px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .rl-sidebar-logo-link {
@@ -28,6 +58,26 @@
   align-items: center;
   gap: 12px;
   text-decoration: none;
+}
+
+.rl-sidebar-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  color: var(--ink-soft);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.rl-sidebar-close-btn:hover {
+  background-color: var(--surface-2);
+  color: var(--ink);
 }
 
 .rl-sidebar-logo-icon {
