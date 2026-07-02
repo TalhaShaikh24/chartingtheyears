@@ -78,6 +78,9 @@ export default function BookDetailPage() {
 
   // Auth context
   const { user, isAuthenticated } = useAuth();
+  const isAdmin = user?.role === 'ADMIN';
+
+  const [deletingReviewId, setDeletingReviewId] = useState<string | null>(null);
 
   // Review form state
   const [reviewAuthor, setReviewAuthor] = useState('');
@@ -134,6 +137,18 @@ export default function BookDetailPage() {
     if (!book) return;
     toggleBook(book._id);
   }, [book, toggleBook]);
+
+  const handleReviewDelete = async (reviewId: string) => {
+    try {
+      setDeletingReviewId(reviewId);
+      await apiClient.delete(`/api/reviews/${reviewId}`);
+      setReviews((prev) => prev.filter((r) => r._id !== reviewId));
+    } catch {
+      // silently ignore
+    } finally {
+      setDeletingReviewId(null);
+    }
+  };
 
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -197,6 +212,7 @@ export default function BookDetailPage() {
   }
 
   const imgSrc = book.imageUrl || `https://placehold.co/400x533/EADCCB/453C38?text=${encodeURIComponent(book.title)}`;
+  const formatYear = (y: number) => y < 0 ? `${Math.abs(y)} BC` : String(y);
 
   return (
     <div className="bd-page">
@@ -222,7 +238,7 @@ export default function BookDetailPage() {
           </p>
 
           <h1 className="bd-title">
-            {book.title} ({book.publicationYear})
+            {book.title} ({formatYear(book.publicationYear)})
           </h1>
 
           <p className="bd-author">{book.author}</p>
@@ -385,6 +401,17 @@ export default function BookDetailPage() {
                       <span key={i} className={`bd-review-star${i <= rev.rating ? ' bd-review-star--on' : ''}`}>★</span>
                     ))}
                   </div>
+                  {isAdmin && (
+                    <button
+                      type="button"
+                      className="bd-review-delete-btn"
+                      onClick={() => handleReviewDelete(rev._id)}
+                      disabled={deletingReviewId === rev._id}
+                      aria-label="Delete review"
+                    >
+                      {deletingReviewId === rev._id ? '…' : '✕'}
+                    </button>
+                  )}
                 </div>
                 <p className="bd-review-card-text">{rev.text}</p>
               </div>

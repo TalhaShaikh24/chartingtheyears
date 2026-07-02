@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback, Suspense, useRef } from 'react';
-import { HistoricalMap } from '@/components/features/HistoricalMap';
+import { useState, useEffect, useCallback, Suspense, useRef, useMemo } from 'react';
+import dynamic from 'next/dynamic';
 import { BookCard } from '@/components/features/BookCard';
 import { BookPopupModal } from '@/components/features/BookPopupModal';
 import { useReadingList } from '@/hooks/useReadingList';
@@ -9,6 +9,12 @@ import { useFilter } from '@/contexts/FilterContext';
 import { useSettings } from '@/contexts/SettingsContext';
 import apiClient from '@/lib/apiClient';
 import './user.css';
+
+// Dynamically import the heavy SVG map so it splits into its own JS chunk
+const HistoricalMap = dynamic(
+  () => import('@/components/features/HistoricalMap'),
+  { ssr: false, loading: () => <div className="map-wrapper" style={{ backgroundColor: '#F5EEE4' }} /> },
+);
 
 interface Book {
   _id: string;
@@ -26,8 +32,8 @@ interface Book {
   imageUrl?: string;
 }
 
-const eras = ['All', 'Ancient', '1900-1920', '1940', '1980', '2000', '2026'];
-const categories = [
+const ERAS = ['All', 'Ancient', '1900-1920', '1940', '1980', '2000', '2026'];
+const CATEGORIES = [
   'All',
   'Social History',
   'Economic History',
@@ -37,18 +43,39 @@ const categories = [
   'Historical Novels',
 ];
 
+// Full allowed year range — only send yearMin/yearMax to API when user deviates
+// Full allowed year range — only send yearMin/yearMax to API when user deviates
+const FULL_YEAR_MIN = -1250;
+const FULL_YEAR_MAX = 2026;
+
+// Each era maps to the year range shown/used in the API filter
+const ERA_YEAR_RANGES: Record<string, [number, number]> = {
+  All:         [-1250, 2026],
+  Ancient:     [-1250, 1899],
+  '1900-1920': [1900, 1920],
+  '1940':      [1921, 1960],
+  '1980':      [1961, 1990],
+  '2000':      [1991, 2010],
+  '2026':      [2011, 2026],
+};
+
 function HomeContent() {
   const { settings } = useSettings();
+  // Declare context hooks first — used in effects below
+  const { filters, setYearRange } = useFilter();
+  const { isInList, toggleBook } = useReadingList();
 
-  // null = no era selected (initial idle state)
-  const [activeEra, setActiveEra] = useState<string | null>(null);
+  // Default to 'All' so all countries with books are highlighted immediately.
+  // Override once with settings.defaultEra when admin has configured one.
+  const [activeEra, setActiveEra] = useState<string | null>('All');
   const [eraInitialised, setEraInitialised] = useState(false);
   useEffect(() => {
     if (!eraInitialised && settings.defaultEra) {
       setActiveEra(settings.defaultEra);
+      setYearRange(ERA_YEAR_RANGES[settings.defaultEra] ?? [FULL_YEAR_MIN, FULL_YEAR_MAX]);
       setEraInitialised(true);
     }
-  }, [settings.defaultEra, eraInitialised]);
+  }, [settings.defaultEra, eraInitialised, setYearRange]);
 
   const [activeCategory, setActiveCategory] = useState('All');
   const [books, setBooks] = useState<Book[]>([]);
@@ -62,16 +89,14 @@ function HomeContent() {
   const [bookCountByCountry, setBookCountByCountry] = useState<Record<string, number>>({});
 
   const observer = useRef<IntersectionObserver | null>(null);
+  // Always-current books list for stable click handler (no re-creates on book changes)
+  const booksRef = useRef<Book[]>([]);
+  booksRef.current = books;
 
-  const { filters } = useFilter();
-
-  // Unified reading list — works for guests (localStorage) and logged-in users (DB)
-  const { isInList, toggleBook } = useReadingList();
-
-  const getQueryParams = useCallback((currentPage: number) => {
+  const getQueryParams = useCallback((currentPage: number, extra?: Record<string, string>) => {
     const params = new URLSearchParams();
     params.set('status', 'published');
-    
+
     const booksPerPage = settings.booksPerPage || 20;
     params.set('limit', booksPerPage.toString());
     params.set('skip', ((currentPage - 1) * booksPerPage).toString());
@@ -80,21 +105,29 @@ function HomeContent() {
     if (activeCategory && activeCategory !== 'All') params.set('category', activeCategory);
     if (selectedCountry) params.set('country', selectedCountry);
 
-    // Sidebar filters
     if (filters.lang.length > 0) params.set('lang', filters.lang.join(','));
     if (filters.type.length > 0) params.set('type', filters.type.join(','));
-    
-    if (filters.yearRange) {
+
+    // Only send year range if user actually narrowed it from the full range
+    if (
+      filters.yearRange &&
+      (filters.yearRange[0] > FULL_YEAR_MIN || filters.yearRange[1] < FULL_YEAR_MAX)
+    ) {
       params.set('yearMin', filters.yearRange[0].toString());
       params.set('yearMax', filters.yearRange[1].toString());
     }
+
     if (filters.rating > 0) params.set('rating', filters.rating.toString());
     if (filters.tags) params.set('tags', filters.tags);
+
+    if (extra) {
+      Object.entries(extra).forEach(([k, v]) => params.set(k, v));
+    }
 
     return params.toString();
   }, [activeEra, activeCategory, selectedCountry, filters, settings.booksPerPage]);
 
-  // Initial load or reset
+  // Initial load — AbortController cancels in-flight request when deps change
   useEffect(() => {
     if (activeEra === null) {
       setBooks([]);
@@ -105,6 +138,8 @@ function HomeContent() {
       return;
     }
 
+    const controller = new AbortController();
+
     const fetchInitialBooks = async () => {
       try {
         setLoading(true);
@@ -114,27 +149,33 @@ function HomeContent() {
           total: number;
           highlightedCountries: string[];
           bookCountByCountry: Record<string, number>;
-        }>(`/api/books?${queryStr}`);
-        
+        }>(`/api/books?${queryStr}`, { signal: controller.signal });
+
         setBooks(response.data.data);
         setTotal(response.data.total);
         setHighlightedCountries(response.data.highlightedCountries || []);
         setBookCountByCountry(response.data.bookCountByCountry || {});
         setPage(1);
-      } catch (err) {
-        console.error('Failed to fetch books', err);
+      } catch (err: any) {
+        if (err?.code !== 'ERR_CANCELED' && err?.name !== 'CanceledError') {
+          console.error('Failed to fetch books', err);
+        }
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchInitialBooks();
+    return () => controller.abort();
   }, [activeEra, activeCategory, selectedCountry, filters, settings.booksPerPage, getQueryParams]);
 
   const fetchNextPage = useCallback(async (nextPage: number) => {
     try {
       setLoadingNext(true);
-      const queryStr = getQueryParams(nextPage);
+      // skip_map skips the country aggregate; skip_count skips countDocuments
+      const queryStr = getQueryParams(nextPage, { skip_map: '1', skip_count: '1' });
       const response = await apiClient.get<{ data: Book[] }>(`/api/books?${queryStr}`);
       setBooks((prev) => [...prev, ...response.data.data]);
       setPage(nextPage);
@@ -145,35 +186,67 @@ function HomeContent() {
     }
   }, [getQueryParams]);
 
-  // Infinite scroll intersection observer callback ref
+  // Mutable ref so the stable IntersectionObserver callback always reads latest state
+  const scrollStateRef = useRef({
+    total,
+    page,
+    booksPerPage: settings.booksPerPage || 20,
+    loadingNext,
+    fetchNextPage,
+  });
+  scrollStateRef.current = { total, page, booksPerPage: settings.booksPerPage || 20, loadingNext, fetchNextPage };
+
+  // Stable callback ref — never changes reference, so observer never disconnects/reconnects
   const observerTarget = useCallback((node: HTMLDivElement | null) => {
     if (observer.current) {
       observer.current.disconnect();
       observer.current = null;
     }
-
     if (!node) return;
 
     observer.current = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !loadingNext) {
-          const booksPerPage = settings.booksPerPage || 20;
-          const maxPages = Math.ceil(total / booksPerPage);
-          const nextPage = page + 1;
-          if (nextPage <= maxPages) {
-            fetchNextPage(nextPage);
-          }
-        }
+        if (!entries[0].isIntersecting) return;
+        const { total: t, page: p, booksPerPage: bpp, loadingNext: ln, fetchNextPage: fnp } =
+          scrollStateRef.current;
+        if (ln) return;
+        const maxPages = Math.ceil(t / bpp);
+        if (p + 1 <= maxPages) fnp(p + 1);
       },
-      { threshold: 0.1, rootMargin: '100px' }
+      { threshold: 0.1, rootMargin: '100px' },
     );
-
     observer.current.observe(node);
-  }, [total, page, settings.booksPerPage, loadingNext, fetchNextPage]);
+  }, []); // empty deps — reads from scrollStateRef
+
+  // Stable book card click — looks up the book from the always-current ref
+  const handleBookCardClick = useCallback((id: string) => {
+    const book = booksRef.current.find((b) => b._id === id);
+    if (book) setPopupBook(book);
+  }, []);
+
+  const handleClosePopup = useCallback(() => setPopupBook(null), []);
 
   const handleAddToReadingList = useCallback((book: Book) => {
     toggleBook(book._id);
   }, [toggleBook]);
+
+  // Stable country click — toggling the same code deselects
+  const handleCountryClick = useCallback((code: string) => {
+    setSelectedCountry((prev) => (prev === code ? null : code));
+  }, []);
+
+  // Stable era click — resets country + syncs the sidebar year-range slider
+  const handleEraClick = useCallback((era: string) => {
+    setActiveEra(era);
+    setSelectedCountry(null);
+    setYearRange(ERA_YEAR_RANGES[era] ?? [FULL_YEAR_MIN, FULL_YEAR_MAX]);
+  }, [setYearRange]);
+
+  // Only recalculate when the country selection or book list changes
+  const booksInSelection = useMemo(
+    () => (selectedCountry ? books.filter((b) => b.country === selectedCountry) : []),
+    [selectedCountry, books],
+  );
 
   return (
     <div className="user-page">
@@ -190,10 +263,10 @@ function HomeContent() {
         </div>
 
         <div className="era-switcher">
-          {eras.map((era) => (
+          {ERAS.map((era) => (
             <button
               key={era}
-              onClick={() => { setActiveEra(era); setSelectedCountry(null); }}
+              onClick={() => handleEraClick(era)}
               className={`era-btn${activeEra === era ? ' era-btn--active' : ''}`}
             >
               {era}
@@ -202,14 +275,14 @@ function HomeContent() {
         </div>
       </div>
 
-      {/* Map */}
+      {/* Map — all props are stable references; memo prevents re-renders during loading */}
       <HistoricalMap
         highlightedCountries={highlightedCountries}
         selectedCountryName={selectedCountry}
         activeEra={activeEra}
-        booksInSelection={selectedCountry ? books.filter((b) => b.country === selectedCountry) : []}
+        booksInSelection={booksInSelection}
         bookCountByCountry={bookCountByCountry}
-        onCountryClick={(name) => setSelectedCountry(selectedCountry === name ? null : name)}
+        onCountryClick={handleCountryClick}
       />
 
       {/* Categories + Books */}
@@ -224,7 +297,7 @@ function HomeContent() {
       ) : (
         <div className="category-section">
           <div className="category-filters">
-            {categories.map((cat) => (
+            {CATEGORIES.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
@@ -255,7 +328,7 @@ function HomeContent() {
                       language={book.language}
                       rating={book.rating}
                       imageUrl={book.imageUrl}
-                      onClick={() => setPopupBook(book)}
+                      onClickId={handleBookCardClick}
                     />
                   ))}
                 </div>
@@ -284,7 +357,7 @@ function HomeContent() {
       {/* Book Popup Modal */}
       <BookPopupModal
         book={popupBook}
-        onClose={() => setPopupBook(null)}
+        onClose={handleClosePopup}
         onAddToReadingList={handleAddToReadingList}
         isInReadingList={popupBook ? isInList(popupBook._id) : false}
       />

@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Icon } from '@/components/ui/kit/Icon';
 import { useReadingList } from '@/hooks/useReadingList';
-import { useAuth } from '@/contexts/AuthContext';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useFilter } from '@/contexts/FilterContext';
 import apiClient from '@/lib/apiClient';
@@ -29,8 +28,6 @@ function SidebarContent({ isMobileOpen, onClose }: { isMobileOpen?: boolean; onC
   const [books, setBooks] = useState<Book[]>([]);
   const searchParams = useSearchParams();
   const activeCategory = searchParams?.get('category') || 'All';
-  const { user } = useAuth();
-  const isAdmin = user?.role === 'ADMIN';
   const { settings } = useSettings();
 
   const { ids, isReady } = useReadingList();
@@ -44,17 +41,10 @@ function SidebarContent({ isMobileOpen, onClose }: { isMobileOpen?: boolean; onC
     }
 
     let cancelled = false;
-    Promise.allSettled(
-      ids.map((id) =>
-        apiClient.get<{ data: Book }>(`/api/books/${id}`).then((r) => r.data.data)
-      )
-    ).then((results) => {
-      if (cancelled) return;
-      const valid = results
-        .filter((r): r is PromiseFulfilledResult<Book> => r.status === 'fulfilled')
-        .map((r) => r.value);
-      setBooks(valid);
-    });
+    apiClient
+      .get<{ data: Book[] }>(`/api/books?ids=${ids.join(',')}`)
+      .then((r) => { if (!cancelled) setBooks(r.data.data); })
+      .catch(() => {});
 
     return () => { cancelled = true; };
   }, [ids, isReady]);
@@ -138,11 +128,6 @@ function SidebarContent({ isMobileOpen, onClose }: { isMobileOpen?: boolean; onC
         </nav>
 
         <div className="rl-sidebar-footer">
-          {isAdmin && (
-            <Link href="/admin/dashboard" className="rl-admin-btn" onClick={onClose}>
-              Click Here to Visit Admin Dashboard
-            </Link>
-          )}
         </div>
       </aside>
     </>

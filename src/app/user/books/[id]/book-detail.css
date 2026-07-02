@@ -504,6 +504,34 @@
   margin-left: auto;
 }
 
+.bd-review-delete-btn {
+  margin-left: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(var(--danger-rgb, 200 60 60), 0.35);
+  background: rgba(var(--danger-rgb, 200 60 60), 0.08);
+  color: var(--danger, #c83c3c);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+
+.bd-review-delete-btn:hover:not(:disabled) {
+  background: rgba(var(--danger-rgb, 200 60 60), 0.18);
+  border-color: rgba(var(--danger-rgb, 200 60 60), 0.6);
+}
+
+.bd-review-delete-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .bd-review-star {
   font-size: 14px;
   color: var(--line);

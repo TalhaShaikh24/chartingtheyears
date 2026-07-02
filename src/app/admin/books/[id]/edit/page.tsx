@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { BookForm } from '@/components/features/BookForm';
+import { BookReviewsSection } from '@/components/features/BookReviewsSection';
 import { Book } from '@/lib/schemas';
 import { useParams } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
@@ -54,5 +55,10 @@ export default function EditBookPage() {
     return <div className="text-center text-muted-foreground">Book not found</div>;
   }
 
-  return <BookForm initialData={book} />;
+  return (
+    <div className="space-y-6">
+      <BookForm initialData={book} />
+      <BookReviewsSection bookId={id} />
+    </div>
+  );
 }

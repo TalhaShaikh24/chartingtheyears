@@ -26,6 +26,16 @@ export async function GET(request: NextRequest) {
     const rating = searchParams.get('rating');
     const tags = searchParams.get('tags');
 
+    // Batch-by-IDs short-circuit (used by sidebar)
+    const idsParam = searchParams.get('ids');
+    if (idsParam) {
+      const ids = idsParam.split(',').filter(Boolean);
+      const books = await Book.find({ _id: { $in: ids } })
+        .select('_id category')
+        .lean();
+      return NextResponse.json({ success: true, data: books });
+    }
+
     const filter: any = {};
     if (status) {
       filter.status = status;
@@ -82,23 +92,19 @@ export async function GET(request: NextRequest) {
       filter.tags = { $regex: tags, $options: 'i' };
     }
 
-    const books = await Book.find(filter)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean();
+    // Pagination-only requests skip the two expensive aggregates
+    const skipMap = searchParams.get('skip_map') === '1';
+    const skipCount = searchParams.get('skip_count') === '1';
 
-    const total = await Book.countDocuments(filter);
-
-    // Compute distinct matching countries and their counts for map highlights
-    const mapStats = await Book.aggregate([
-      { $match: filter },
-      {
-        $group: {
-          _id: '$country',
-          count: { $sum: 1 },
-        },
-      },
+    const [books, total, mapStats] = await Promise.all([
+      Book.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      skipCount ? Promise.resolve(0) : Book.countDocuments(filter),
+      skipMap
+        ? Promise.resolve([])
+        : Book.aggregate([
+            { $match: filter },
+            { $group: { _id: '$country', count: { $sum: 1 } } },
+          ]),
     ]);
 
     const bookCountByCountry = mapStats.reduce((acc: any, curr: any) => {

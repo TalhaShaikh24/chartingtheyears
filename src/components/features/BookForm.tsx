@@ -219,10 +219,10 @@ export function BookForm({ initialData }: BookFormProps) {
               {errors.historicalYear && <p className="mt-1 text-xs text-danger">{errors.historicalYear.message}</p>}
             </div>
             <div>
-              <KitLabel>Publication Year</KitLabel>
+              <KitLabel>Subject Year</KitLabel>
               <KitInput
                 type="number"
-                placeholder="1920"
+                placeholder="1900"
                 {...register('publicationYear', { valueAsNumber: true })}
               />
               {errors.publicationYear && <p className="mt-1 text-xs text-danger">{errors.publicationYear.message}</p>}

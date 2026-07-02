@@ -129,7 +129,7 @@ export function BookPopupModal({
               <span className="bpm-year-value">{historicalRange}</span>
             </div>
             <div className="bpm-year-cell">
-              <span className="bpm-year-label">PUBLICATION YEAR</span>
+              <span className="bpm-year-label">SUBJECT YEAR</span>
               <span className="bpm-year-value">{book.publicationYear}</span>
             </div>
           </div>

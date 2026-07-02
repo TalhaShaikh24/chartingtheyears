@@ -8,35 +8,17 @@ export async function GET(request: NextRequest) {
   try {
     await connectDB();
 
-    const totalBooks = await Book.countDocuments();
-    const totalCategories = await Category.countDocuments();
-    const totalTags = await Tag.countDocuments();
+    const [totalBooks, totalCategories, totalTags, booksWithRating, countriesResult] =
+      await Promise.all([
+        Book.countDocuments(),
+        Category.countDocuments(),
+        Tag.countDocuments(),
+        Book.aggregate([{ $group: { _id: null, avgRating: { $avg: '$rating' } } }]),
+        Book.aggregate([{ $group: { _id: '$country' } }, { $count: 'total' }]),
+      ]);
 
-    const booksWithRating = await Book.aggregate([
-      {
-        $group: {
-          _id: null,
-          avgRating: { $avg: '$rating' },
-        },
-      },
-    ]);
-
-    const averageRating =
-      booksWithRating.length > 0 ? booksWithRating[0].avgRating : 0;
-
-    const countriesResult = await Book.aggregate([
-      {
-        $group: {
-          _id: '$country',
-        },
-      },
-      {
-        $count: 'total',
-      },
-    ]);
-
-    const activeCountries =
-      countriesResult.length > 0 ? countriesResult[0].total : 0;
+    const averageRating = booksWithRating.length > 0 ? booksWithRating[0].avgRating : 0;
+    const activeCountries = countriesResult.length > 0 ? countriesResult[0].total : 0;
 
     return NextResponse.json({
       success: true,

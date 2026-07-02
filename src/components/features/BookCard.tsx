@@ -1,5 +1,6 @@
 'use client';
 
+import { memo, useCallback } from 'react';
 import { Stars } from '@/components/ui/kit/Stars';
 import './BookCard.css';
 
@@ -12,11 +13,13 @@ interface BookCardProps {
   rating: number;
   imageUrl?: string;
   onClick?: () => void;
+  onClickId?: (id: string) => void;
 }
 
 const PLACEHOLDER_BASE = 'https://placehold.co/400x533/EADCCB/453C38?text=';
 
-export function BookCard({
+export const BookCard = memo(function BookCard({
+  _id,
   title,
   author,
   category,
@@ -24,17 +27,32 @@ export function BookCard({
   rating,
   imageUrl,
   onClick,
+  onClickId,
 }: BookCardProps) {
   const imgSrc = imageUrl || `${PLACEHOLDER_BASE}${encodeURIComponent(title)}`;
 
+  // Stable handler — only recreates when _id / callbacks change.
+  // Callers using onClickId with a parent useCallback let memo skip
+  // re-renders on unrelated state changes like the popup opening/closing.
+  const handleClick = useCallback(() => {
+    if (onClickId && _id) onClickId(_id);
+    else if (onClick) onClick();
+  }, [_id, onClick, onClickId]);
+
+  const isClickable = Boolean(onClick || (onClickId && _id));
+
   return (
     <div
-      className={`book-card${onClick ? ' book-card--clickable' : ''}`}
-      onClick={onClick}
-      role={onClick ? 'button' : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); } : undefined}
-      aria-label={onClick ? `View details for ${title}` : undefined}
+      className={`book-card${isClickable ? ' book-card--clickable' : ''}`}
+      onClick={isClickable ? handleClick : undefined}
+      role={isClickable ? 'button' : undefined}
+      tabIndex={isClickable ? 0 : undefined}
+      onKeyDown={
+        isClickable
+          ? (e) => { if (e.key === 'Enter' || e.key === ' ') handleClick(); }
+          : undefined
+      }
+      aria-label={isClickable ? `View details for ${title}` : undefined}
     >
       <div className="book-card-image-wrap">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -62,4 +80,4 @@ export function BookCard({
       </div>
     </div>
   );
-}
+});

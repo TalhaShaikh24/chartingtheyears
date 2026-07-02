@@ -27,7 +27,7 @@ interface FilterContextType {
 const defaultState: FilterState = {
   lang: [],
   type: [],
-  yearRange: [1900, 2026],
+  yearRange: [-1250, 2026], // full allowed range — matches schema min/max
   rating: 0,
   tags: '',
   mobileFiltersOpen: false,

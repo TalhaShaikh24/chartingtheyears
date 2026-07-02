@@ -34,7 +34,7 @@ const features = [
     ),
     title: 'Deep filtering',
     description:
-      'Narrow your search by language, type, star rating, publication year, and a full library of subject tags.',
+      'Narrow your search by language, type, star rating, subject year, and a full library of subject tags.',
   },
   {
     icon: (

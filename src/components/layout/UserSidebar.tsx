@@ -29,11 +29,13 @@ function SidebarContent({ isMobileOpen, onClose }: { isMobileOpen?: boolean; onC
   };
 
   const handleTypeToggle = (t: string) => {
-    const next = filters.type.includes(t) 
-      ? filters.type.filter((x) => x !== t) 
+    const next = filters.type.includes(t)
+      ? filters.type.filter((x) => x !== t)
       : [...filters.type, t];
     setType(next);
   };
+
+  const formatYear = (y: number) => (y < 0 ? `${Math.abs(y)} BC` : String(y));
 
   return (
     <>
@@ -117,14 +119,16 @@ function SidebarContent({ isMobileOpen, onClose }: { isMobileOpen?: boolean; onC
             {/* Publication Year */}
             <div className="kit-slider-wrap">
               <div className="kit-slider-header">
-                <span className="kit-slider-label">Publication Year</span>
-                <span className="kit-slider-value">{filters.yearRange[0]}–{filters.yearRange[1]}</span>
+                <span className="kit-slider-label">Subject Year</span>
+                <span className="kit-slider-value">
+                  {formatYear(filters.yearRange[0])} – {formatYear(filters.yearRange[1])}
+                </span>
               </div>
-              <DualSlider 
-                min={1800} 
-                max={2026} 
-                value={filters.yearRange} 
-                onChange={setYearRange} 
+              <DualSlider
+                min={-1250}
+                max={2026}
+                value={filters.yearRange}
+                onChange={setYearRange}
               />
             </div>
 
