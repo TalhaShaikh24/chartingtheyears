@@ -10,8 +10,12 @@ export async function GET(request: NextRequest) {
     await connectDB();
 
     const searchParams = request.nextUrl.searchParams;
-    const limit = parseInt(searchParams.get('limit') || '20');
-    const skip = parseInt(searchParams.get('skip') || '0');
+    // Clamp limit and skip to safe values so malformed/large numbers never
+    // cause a slow full-collection scan or a MongoDB skip-negative error.
+    const rawLimit = parseInt(searchParams.get('limit') || '20');
+    const rawSkip  = parseInt(searchParams.get('skip')  || '0');
+    const limit = Number.isFinite(rawLimit) ? Math.min(Math.max(rawLimit, 1), 200) : 20;
+    const skip  = Number.isFinite(rawSkip)  ? Math.max(rawSkip, 0)                 : 0;
     const status = searchParams.get('status');
     const q = searchParams.get('q');
 
@@ -41,10 +45,13 @@ export async function GET(request: NextRequest) {
       filter.status = status;
     }
     if (q) {
+      // Escape special regex chars so arbitrary search strings can't break the
+      // MongoDB regex engine (e.g. "*foo" or "(unclosed" would throw otherwise).
+      const safeQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       filter.$or = [
-        { title: { $regex: q, $options: 'i' } },
-        { author: { $regex: q, $options: 'i' } },
-        { category: { $regex: q, $options: 'i' } },
+        { title: { $regex: safeQ, $options: 'i' } },
+        { author: { $regex: safeQ, $options: 'i' } },
+        { category: { $regex: safeQ, $options: 'i' } },
       ];
     }
     if (category && category !== 'All') {

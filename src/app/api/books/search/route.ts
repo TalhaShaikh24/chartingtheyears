@@ -16,11 +16,12 @@ export async function GET(request: NextRequest) {
 
     await connectDB();
 
+    const safeQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const results = await Book.find({
       $or: [
-        { title: { $regex: q, $options: 'i' } },
-        { author: { $regex: q, $options: 'i' } },
-        { category: { $regex: q, $options: 'i' } },
+        { title: { $regex: safeQ, $options: 'i' } },
+        { author: { $regex: safeQ, $options: 'i' } },
+        { category: { $regex: safeQ, $options: 'i' } },
       ],
     })
       .limit(20)

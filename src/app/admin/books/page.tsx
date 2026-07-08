@@ -52,10 +52,13 @@ export default function BooksPage() {
   const fetchBooks = useCallback(async () => {
     try {
       setLoading(true);
-      const skip = (page - 1) * limit;
-      const response = await apiClient.get<{ data: Book[]; total: number }>(
-        `/api/books?limit=${limit}&skip=${skip}&q=${encodeURIComponent(debouncedQ)}`,
-      );
+      const offset = (page - 1) * limit;
+      // skip_map=1 — the admin list never needs the per-country aggregation,
+      // which is the expensive query that fails/times-out on large collections.
+      const url =
+        `/api/books?limit=${limit}&skip=${offset}` +
+        `&q=${encodeURIComponent(debouncedQ)}&skip_map=1`;
+      const response = await apiClient.get<{ data: Book[]; total: number }>(url);
       setBooks(response.data.data);
       setTotal(response.data.total);
     } catch (err) {

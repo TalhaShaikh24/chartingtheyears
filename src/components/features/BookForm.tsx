@@ -6,6 +6,7 @@ import { Book, BookSchema } from '@/lib/schemas';
 import { COUNTRIES } from '@/lib/countries';
 import { KitInput, KitLabel, KitTextarea } from '@/components/ui/kit/Input';
 import { KitSelect } from '@/components/ui/kit/Select';
+import { SearchableSelect } from '@/components/ui/kit/SearchableSelect';
 import { KitButton } from '@/components/ui/kit/Button';
 import { Card } from '@/components/ui/kit/Card';
 import { ImageUploader } from '@/components/features/ImageUploader';
@@ -91,6 +92,7 @@ export function BookForm({ initialData }: BookFormProps) {
   });
 
   const reviewTextValue = watch('reviewText') || '';
+  const countryValue = watch('country') || 'US';
 
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) =>
@@ -233,9 +235,11 @@ export function BookForm({ initialData }: BookFormProps) {
           <div className="grid grid-cols-2 gap-6">
             <div>
               <KitLabel>Country</KitLabel>
-              <KitSelect
+              <SearchableSelect
                 options={COUNTRIES}
-                {...register('country')}
+                value={countryValue}
+                onChange={(val) => setValue('country', val, { shouldValidate: true })}
+                placeholder="Search country…"
               />
               {errors.country && <p className="mt-1 text-xs text-danger">{errors.country.message}</p>}
             </div>
