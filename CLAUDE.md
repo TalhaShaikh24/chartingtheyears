@@ -86,7 +86,11 @@ There are **two** component directories — don't confuse them:
 
 ### Book import
 
-`/admin/books/import` accepts WordPress WXR XML files, POSTs to `/api/books/import` with up to 3-minute timeout. The import route decodes base64 cover images embedded in the XML and stores them on the book document.
+`/admin/books/import` accepts WordPress WXR XML files, POSTs to `/api/books/import` with up to 3-minute timeout. The import route downloads cover images referenced in the XML and saves them as files (see below).
+
+### Cover image storage
+
+Cover images are stored as files on disk, **not** base64 in the DB. `src/lib/imageStorage.ts` writes to `uploads/covers/` at the project root (override with the `UPLOADS_DIR` env var); files are served by `GET /api/uploads/[...path]`. The admin `ImageUploader` POSTs to `/api/upload` (admin JWT required) and stores the returned URL (`/api/uploads/covers/<uuid>.<ext>`) in `Book.imageUrl`. Book create/update routes defensively convert any incoming `data:` URLs to files; update/delete remove the replaced/orphaned file. Migration of legacy base64 documents: `npm run migrate:images` (CLI) or hit `/api/admin/migrate-images` as a logged-in admin (works on production).
 
 ### Styling
 
