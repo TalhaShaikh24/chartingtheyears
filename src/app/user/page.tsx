@@ -62,7 +62,7 @@ const ERA_YEAR_RANGES: Record<string, [number, number]> = {
 function HomeContent() {
   const { settings } = useSettings();
   // Declare context hooks first — used in effects below
-  const { filters, setYearRange } = useFilter();
+  const { filters, setYearRange, setFiltersLoading } = useFilter();
   const { isInList, toggleBook } = useReadingList();
 
   // Default to 'All' so all countries with books are highlighted immediately.
@@ -143,6 +143,7 @@ function HomeContent() {
     const fetchInitialBooks = async () => {
       try {
         setLoading(true);
+        setFiltersLoading(true);
         const queryStr = getQueryParams(1);
         const response = await apiClient.get<{
           data: Book[];
@@ -163,6 +164,7 @@ function HomeContent() {
       } finally {
         if (!controller.signal.aborted) {
           setLoading(false);
+          setFiltersLoading(false);
         }
       }
     };
@@ -174,6 +176,7 @@ function HomeContent() {
   const fetchNextPage = useCallback(async (nextPage: number) => {
     try {
       setLoadingNext(true);
+      setFiltersLoading(true);
       // skip_map skips the country aggregate; skip_count skips countDocuments
       const queryStr = getQueryParams(nextPage, { skip_map: '1', skip_count: '1' });
       const response = await apiClient.get<{ data: Book[] }>(`/api/books?${queryStr}`);
@@ -183,6 +186,7 @@ function HomeContent() {
       console.error('Failed to load next page', err);
     } finally {
       setLoadingNext(false);
+      setFiltersLoading(false);
     }
   }, [getQueryParams]);
 

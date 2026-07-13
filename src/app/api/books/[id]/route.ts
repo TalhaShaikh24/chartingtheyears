@@ -4,6 +4,7 @@ import { BookSchema } from '@/lib/schemas';
 import Book from '@/models/Book';
 import Category from '@/models/Category';
 import Tag from '@/models/Tag';
+import { isBase64DataUrl, saveDataUrlImage, deleteStoredImage } from '@/lib/imageStorage';
 
 export async function GET(
   request: NextRequest,
@@ -42,6 +43,11 @@ export async function PATCH(
     // Validate with Zod
     const validated = BookSchema.parse(body);
 
+    // Base64 images are no longer stored in the DB — persist them as files
+    if (isBase64DataUrl(validated.imageUrl)) {
+      validated.imageUrl = (await saveDataUrlImage(validated.imageUrl!)) || '';
+    }
+
     await connectDB();
     const { id } = await params;
 
@@ -51,6 +57,11 @@ export async function PATCH(
         { success: false, error: 'Book not found' },
         { status: 404 }
       );
+    }
+
+    // Remove the old cover file when it was replaced or cleared
+    if (existingBook.imageUrl && existingBook.imageUrl !== validated.imageUrl) {
+      await deleteStoredImage(existingBook.imageUrl);
     }
 
     const updatedBook = await Book.findByIdAndUpdate(
@@ -156,6 +167,7 @@ export async function DELETE(
     );
 
     await Book.findByIdAndDelete(id);
+    await deleteStoredImage(book.imageUrl);
 
     return NextResponse.json({ success: true, message: 'Book deleted' });
   } catch (error) {

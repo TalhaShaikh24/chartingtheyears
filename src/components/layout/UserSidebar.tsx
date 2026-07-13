@@ -14,6 +14,7 @@ function SidebarContent({ isMobileOpen, onClose }: { isMobileOpen?: boolean; onC
   const { settings } = useSettings();
   const {
     filters,
+    filtersLoading,
     setLang,
     setType,
     setYearRange,
@@ -65,7 +66,10 @@ function SidebarContent({ isMobileOpen, onClose }: { isMobileOpen?: boolean; onC
             <h2>Filters</h2>
           </div>
 
-          <div className="filters-body">
+          <div
+            className="filters-body"
+            style={filtersLoading ? { pointerEvents: 'none', opacity: 0.45, transition: 'opacity 0.15s' } : { transition: 'opacity 0.15s' }}
+          >
             {/* Language */}
             <div className="filter-group">
               <h3 className="filter-group-title">Language</h3>
@@ -95,7 +99,7 @@ function SidebarContent({ isMobileOpen, onClose }: { isMobileOpen?: boolean; onC
             <div className="filter-group">
               <h3 className="filter-group-title">Type</h3>
               <div className="filter-checkboxes">
-                {['Fiction', 'Non-Fiction'].map((t) => (
+                {['Fiction', 'Non-fiction'].map((t) => (
                   <label key={t} className="kit-checkbox-label">
                     <div className="kit-checkbox-wrapper">
                       <input 

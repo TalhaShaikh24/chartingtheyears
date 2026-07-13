@@ -4,6 +4,7 @@ import { BookSchema } from '@/lib/schemas';
 import Book from '@/models/Book';
 import Category from '@/models/Category';
 import Tag from '@/models/Tag';
+import { isBase64DataUrl, saveDataUrlImage } from '@/lib/imageStorage';
 
 export async function GET(request: NextRequest) {
   try {
@@ -146,6 +147,11 @@ export async function POST(request: NextRequest) {
 
     // Validate with Zod
     const validated = BookSchema.parse(body);
+
+    // Base64 images are no longer stored in the DB — persist them as files
+    if (isBase64DataUrl(validated.imageUrl)) {
+      validated.imageUrl = (await saveDataUrlImage(validated.imageUrl!)) || '';
+    }
 
     await connectDB();
 

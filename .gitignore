@@ -16,5 +16,8 @@ node_modules
 .DS_Store
 config.bat
 
+# Uploaded cover images (stored on the server's disk, not in git)
+uploads/
+
 # Personal Claude Code preferences
 CLAUDE.local.md

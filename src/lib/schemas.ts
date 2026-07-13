@@ -5,7 +5,7 @@ export const BookSchema = z.object({
   _id: z.string().optional(),
   title: z.string().min(1, 'Title is required'),
   author: z.string().min(1, 'Author is required'),
-  historicalYear: z.number().min(1000).max(3000),
+  historicalYear: z.number().min(-5000).max(3000),
   publicationYear: z.number().min(-1250).max(2026),
   country: z.string().min(1, 'Country is required'),
   category: z.string().min(1, 'Category is required'),

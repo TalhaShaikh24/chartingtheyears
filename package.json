@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "seed": "npx ts-node scripts/seed-db.ts"
+    "seed": "npx ts-node scripts/seed-db.ts",
+    "migrate:images": "npx ts-node scripts/migrate-base64-images.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

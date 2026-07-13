@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/db';
 import Book from '@/models/Book';
 import Category from '@/models/Category';
 import Tag from '@/models/Tag';
+import { saveImageBuffer } from '@/lib/imageStorage';
 
 // Helper to preserve rich HTML tags but strip WordPress block comments & decode entities
 function cleanHtml(html: string): string {
@@ -26,8 +27,8 @@ function cleanHtml(html: string): string {
   return text.trim();
 }
 
-// Helper to fetch external image URL and convert to Base64 data URL
-async function fetchImageAsBase64(url: string): Promise<string> {
+// Helper to fetch external image URL and store it as a file in the uploads directory
+async function fetchImageToFile(url: string): Promise<string> {
   if (!url) return '';
   try {
     const response = await fetch(url, {
@@ -37,7 +38,7 @@ async function fetchImageAsBase64(url: string): Promise<string> {
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     const contentType = response.headers.get('content-type') || 'image/jpeg';
-    return `data:${contentType};base64,${buffer.toString('base64')}`;
+    return await saveImageBuffer(buffer, contentType);
   } catch (error) {
     console.error(`[Importer] Failed to fetch image ${url}:`, error);
     return '';
@@ -292,15 +293,15 @@ export async function POST(request: NextRequest) {
       // 7. Review Text (preserve HTML formatting, clean comments/entities)
       const reviewText = cleanHtml(rawContent);
 
-      // 8. Cover Image (Base64 conversion)
+      // 8. Cover Image (stored as a file in the uploads directory)
       let imageUrl = existingBook ? existingBook.imageUrl : '';
       if (rawContent) {
         const imgMatch = rawContent.match(/<img[^>]+src="([^"]+)"/);
         if (imgMatch) {
           const externalImgUrl = imgMatch[1];
-          const base64Img = await fetchImageAsBase64(externalImgUrl);
-          if (base64Img) {
-            imageUrl = base64Img;
+          const storedImageUrl = await fetchImageToFile(externalImgUrl);
+          if (storedImageUrl) {
+            imageUrl = storedImageUrl;
           }
         }
       }

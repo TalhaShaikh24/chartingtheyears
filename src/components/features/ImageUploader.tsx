@@ -1,23 +1,26 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
+import apiClient from '@/lib/apiClient';
 import './ImageUploader.css';
 
 interface ImageUploaderProps {
   value: string | null;
-  onChange: (base64: string | null) => void;
+  onChange: (url: string | null) => void;
 }
 
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => reject(new Error('Failed to read file'));
-    reader.readAsDataURL(file);
-  });
+async function uploadImage(file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await apiClient.post<{ success: boolean; url: string }>(
+    '/api/upload',
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } }
+  );
+  return response.data.url;
 }
 
 export function ImageUploader({ value, onChange }: ImageUploaderProps) {
@@ -46,10 +49,10 @@ export function ImageUploader({ value, onChange }: ImageUploaderProps) {
       setError(null);
       setLoading(true);
       try {
-        const base64 = await fileToBase64(file);
-        onChange(base64);
+        const url = await uploadImage(file);
+        onChange(url);
       } catch {
-        setError('Failed to process the image. Please try again.');
+        setError('Failed to upload the image. Please try again.');
       } finally {
         setLoading(false);
       }

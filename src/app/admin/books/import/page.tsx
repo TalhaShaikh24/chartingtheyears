@@ -129,7 +129,7 @@ export default function BookImportPage() {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        timeout: 180000, // 3 minutes timeout to process base64 downloads safely
+        timeout: 180000, // 3 minutes timeout to process cover image downloads safely
       });
 
       if (response.data && response.data.data) {
@@ -263,7 +263,7 @@ export default function BookImportPage() {
                           Replace and overwrite existing books
                         </span>
                         <p className="text-xs text-ink-mute">
-                          Overwrite duplicate catalog entries with newly extracted XML review descriptions and Base64 images.
+                          Overwrite duplicate catalog entries with newly extracted XML review descriptions and cover images.
                         </p>
                       </div>
                     </label>
@@ -327,7 +327,7 @@ export default function BookImportPage() {
                 />
               </div>
               <p className="text-[11px] text-ink-mute text-center">
-                Fetching remote cover images, encoding into Base64, and updating tags...
+                Fetching remote cover images, saving them to the uploads folder, and updating tags...
               </p>
             </div>
           </div>
