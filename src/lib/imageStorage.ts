@@ -52,6 +52,20 @@ export async function saveDataUrlImage(dataUrl: string): Promise<string | null> 
   return saveImageBuffer(buffer, mimeType);
 }
 
+/**
+ * Write an image buffer under a specific file name (used when syncing covers
+ * between environments so DB imageUrl references keep matching). Returns the
+ * public URL, or null if the name is unsafe or has an unknown extension.
+ */
+export async function saveNamedImage(buffer: Buffer, fileName: string): Promise<string | null> {
+  const safeName = path.basename(fileName);
+  const ext = path.extname(safeName).slice(1).toLowerCase();
+  if (!EXT_TO_MIME[ext] || safeName !== fileName) return null;
+  await fs.mkdir(COVERS_DIR, { recursive: true });
+  await fs.writeFile(path.join(COVERS_DIR, safeName), buffer);
+  return `${COVERS_URL_PREFIX}${safeName}`;
+}
+
 /** Delete a stored cover file. Ignores URLs that aren't managed uploads. */
 export async function deleteStoredImage(url?: string | null): Promise<void> {
   if (!url || !url.startsWith(COVERS_URL_PREFIX)) return;

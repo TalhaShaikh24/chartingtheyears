@@ -10,7 +10,7 @@ const MONGODB_DB = process.env.MONGODB_DB || 'chartingtheyears';
 
 // Converts every base64 imageUrl in the books collection into a file under
 // ./uploads/covers (or UPLOADS_DIR) and stores the file URL in the document.
-// Run from the project root: npx ts-node scripts/migrate-base64-images.ts
+// Run from the project root: npm run migrate:images
 // Point MONGODB_URI at the production database to migrate production.
 async function migrate() {
   try {
